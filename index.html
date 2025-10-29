@@ -1,6 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BB Agente TI - Plano de Estudos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Google APIs -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    :root {
+      --azul-bb: #004aad;
+      --verde: #28a745;
+      --amarelo: #ffc107;
+      --vermelho: #dc3545;
+      --cinza: #6c757d;
+      --fundo: #f8f9fa;
+      --card: #ffffff;
+      --borda: #dee2e6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--fundo);
+      color: #212529;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container { max-width: 1100px; margin: auto; }
+
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, var(--azul-bb), #003d82);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 20px rgba(0, 77, 173, 0.2);
+    }
+
+    header h1 { font-size: 2rem; margin-bottom: 8px; }
+    header p { opacity: 0.9; font-size: 1.1rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+      border: 1px solid var(--borda);
+    }
+
+    .stat-card h3 { font-size: 0.9rem; color: var(--cinza); margin-bottom: 8px; }
+    .stat-card p { font-size: 1.5rem; font-weight: 600; color: var(--azul-bb); }
+
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; align-items: center;
+    }
+
+    button, select {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    select { background: white; border: 1px solid var(--borda); color: #333; }
+    .btn-primary { background: var(--azul-bb); color: white; }
+    .btn-success { background: var(--verde); color: white; }
+    .btn-warning { background: var(--amarelo); color: #212529; }
+    .btn-danger { background: var(--vermelho); color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+    .ciclo-ativo {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 2px solid var(--azul-bb);
+      display: none;
+    }
+
+    .ciclo-timer {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      color: var(--azul-bb);
+      margin: 15px 0;
+    }
+
+    .ciclo-progress {
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .ciclo-progress-fill {
+      height: 100%;
+      background: var(--verde);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .ciclo-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .materia {
+      background: var(--card);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid var(--borda);
+    }
+
+    .materia-header {
+      background: var(--azul-bb);
+      color: white;
+      padding: 16px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
+    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
+
+    .materia-content {
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+
+    .materia-content.open {
+      padding: 16px 20px;
+      max-height: 1000px;
+    }
+
+    .topico-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px dashed #e9ecef;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .topico-item:last-child { border-bottom: none; }
+
+    .topico-text { flex: 1; font-size: 0.95rem; }
+
+    .topico-actions { display: flex; gap: 6px; }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .status {
+      width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
+      border: 2px solid #ccc;
+    }
+
+    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
+    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
+    .status.concluido { background: #d4edda; border-color: var(--verde); }
+
+    .historico table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .historico th, .historico td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--borda);
+    }
+
+    .historico th { background: var(--azul-bb); color: white; }
+    .concluido { background: #d4edda; }
+    .andamento { background: #fff3cd; }
+
+    .btn-delete {
+      background: var(--vermelho);
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
+
+    .drive-status { text-align: center; margin: 15px 0; font-weight: 500; }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.6rem; }
+      .topico-item { flex-direction: column; align-items: flex-start; }
+      .topico-actions { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Plano de Estudos BB - Agente TI</h1>
+    <p>Concurso 2025/2026 | Ciclo com Timer Sequencial</p>
+  </header>
+
+  <div class="drive-status" id="driveStatus">Carregando Google Drive...</div>
+
+  <div style="text-align: center; margin: 20px 0;">
+    <div id="g_id_onload"
+         data-client_id="374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div id="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="filled_blue"
+         data-text="signin_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Tempo Hoje</h3>
+      <p><span id="tempoHoje">0</span> min</p>
+    </div>
+    <div class="stat-card">
+      <h3>Tempo Semana</h3>
+      <p><span id="tempoSemana">0</span> min</p>
+    </div>
+    <div class="stat-card">
+      <h3>Tópicos Concluídos</h3>
+      <p><span id="topicosConcluidos">0</span></p>
+    </div>
+    <div class="stat-card">
+      <h3>Progresso Geral</h3>
+      <p><span id="progressoGeral">0</span>%</p>
+    </div>
+  </div>
+
+  <div class="controls">
+    <select id="cicloTempo">
+      <option value="15">15 min</option>
+      <option value="30" selected>30 min</option>
+      <option value="60">60 min</option>
+      <option value="90">90 min</option>
+      <option value="180">180 min</option>
+    </select>
+    <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
+    <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
+    <button class="btn-warning" onclick="exportarParaDrive()">Backup no Drive</button>
+    <button class="btn-warning" onclick="listarBackupsDrive()">Restaurar do Drive</button>
+    <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
+    <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
+  </div>
+
+  <div class="ciclo-ativo" id="cicloAtivo">
+    <h3 id="cicloTitulo">Ciclo Iniciado</h3>
+    <div class="ciclo-timer" id="timerCiclo">00:00</div>
+    <div class="ciclo-progress"><div class="ciclo-progress-fill" id="progressFill"></div></div>
+    <div class="ciclo-info">
+      <span>Tópico: <strong id="topicoAtual">-</strong></span>
+      <span>Progresso: <strong id="progressoTexto">0%</strong></span>
+    </div>
+    <div style="text-align:center; margin-top:15px;">
+      <button class="btn-warning" onclick="pausarCiclo()">Pausar</button>
+      <button class="btn-success" onclick="proximoTopico()" id="btnProximo" style="display:none;">Próximo</button>
+      <button class="btn-danger" onclick="pararCiclo()">Parar Ciclo</button>
+    </div>
+  </div>
+
+  <div id="materias"></div>
+
+  <div class="historico">
+    <h2>Histórico de Estudo</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaHistorico"></tbody>
+    </table>
+  </div>
+
+  <div class="modal" id="notaModal">
+    <div class="modal-content">
+      <h3>Notas do Tópico</h3>
+      <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
+      <div style="text-align:right; margin-top:10px;">
+        <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
+    <h3>Pomodoro</h3>
+    <div id="timer">25:00</div>
+    <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
+    <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
+    <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
+  </div>
+</div>
+
 <script>
 // === CONFIGURAÇÕES ===
 const CLIENT_ID = '374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyB5v6v6v6v6v6v6v6v6v6v6v6v6v6v6v6v'; // Substitua pela sua API Key (opcional)
+const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 // === DADOS ===
 const materias = [
@@ -16,7 +378,7 @@ const materias = [
 let historico = JSON.parse(localStorage.getItem('bb-historico-v10')) || [];
 let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
 let pomodoroTime = 25 * 60, timerInterval = null;
-let googleLoaded = false, googleSignedIn = false;
+let gapiInited = false, gisInited = false, tokenClient;
 
 // === SALVAR E ATUALIZAR ===
 function salvar() {
@@ -31,67 +393,71 @@ function atualizarTudo() {
   atualizarStatusDrive();
 }
 
-// === GOOGLE SIGN-IN (GSI) ===
-function initializeGoogleSignIn() {
-  if (typeof google !== 'undefined' && google.accounts && !googleLoaded) {
-    googleLoaded = true;
-    console.log('Google GSI carregado!');
-
-    google.accounts.id.initialize({
-      client_id: CLIENT_ID,
-      callback: handleCredentialResponse
+// === GOOGLE AUTH ===
+function initializeGapi() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: [DISCOVERY_DOC],
     });
+    gapiInited = true;
+    maybeEnableButtons();
+  });
+}
 
-    google.accounts.id.renderButton(
-      document.getElementById('g_id_signin'),
-      { theme: "filled_blue", size: "large", text: "signin_with" }
-    );
-
-    const token = localStorage.getItem('google_token');
-    if (token) {
-      googleSignedIn = true;
+function initializeGis() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.error) return console.error(resp);
       atualizarStatusDrive();
-    }
+    },
+  });
+  gisInited = true;
+  maybeEnableButtons();
+}
+
+function maybeEnableButtons() {
+  if (gapiInited && gisInited) {
+    atualizarStatusDrive();
   }
 }
 
 function handleCredentialResponse(response) {
-  googleSignedIn = true;
-  localStorage.setItem('google_token', response.credential);
-  atualizarStatusDrive();
-  alert('Login realizado com sucesso!\n\nVocê pode fazer backup no Drive agora.');
+  // GSI login
+  tokenClient.requestAccessToken({ prompt: '' });
 }
 
-function logoutGoogle() {
+function gapiLogout() {
+  google.accounts.id.disableAutoSelect();
+  gapi.auth2.getAuthInstance()?.signOut();
   localStorage.removeItem('google_token');
-  googleSignedIn = false;
   atualizarStatusDrive();
 }
 
 function atualizarStatusDrive() {
   const el = document.getElementById('driveStatus');
-  if (!googleLoaded) {
+  if (!gapiInited || !gisInited) {
     el.innerHTML = 'Carregando Google Drive...';
     return;
   }
-  if (googleSignedIn) {
+  const isSignedIn = gapi.client.getToken();
+  if (isSignedIn) {
     el.innerHTML = `
       Conectado ao Google Drive!
       <button class="btn-warning" style="margin-left:10px; padding:6px 12px; font-size:0.9rem;" onclick="exportarParaDrive()">Backup Agora</button>
       <button class="btn-secondary" style="margin-left:5px; padding:6px 12px; font-size:0.9rem;" onclick="listarBackupsDrive()">Restaurar</button>
-      <button class="btn-danger" style="margin-left:5px; padding:6px 12px; font-size:0.9rem;" onclick="logoutGoogle()">Sair</button>
+      <button class="btn-danger" style="margin-left:5px; padding:6px 12px; font-size:0.9rem;" onclick="gapiLogout()">Sair</button>
     `;
   } else {
     el.innerHTML = 'Clique no botão para conectar ao Google Drive';
   }
 }
 
-// === BACKUP NO DRIVE (CORRIGIDO) ===
+// === DRIVE ===
 async function exportarParaDrive() {
-  if (!googleSignedIn) return alert('Faça login no Google primeiro!');
-  const token = localStorage.getItem('google_token');
-  if (!token) return alert('Token não encontrado. Faça login novamente.');
-
+  if (!gapi.client.getToken()) return tokenClient.requestAccessToken();
   const dados = { version: 'v10', timestamp: new Date().toISOString(), historico };
   const content = JSON.stringify(dados, null, 2);
   const fileName = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -105,66 +471,51 @@ async function exportarParaDrive() {
                'Content-Type: application/json\r\n\r\n' + content + close_delim;
 
   try {
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    const response = await gapi.client.request({
+      path: '/upload/drive/v3/files?uploadType=multipart',
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'multipart/related; boundary=' + boundary
-      },
+      headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
       body: body
     });
-
-    if (response.ok) {
-      alert('Backup salvo com sucesso no Google Drive!');
-    } else {
-      const err = await response.text();
-      console.error('Erro:', err);
-      alert('Erro ao salvar. Tente fazer login novamente.');
-    }
+    alert('Backup salvo com sucesso no Google Drive!');
   } catch (error) {
-    console.error('Erro de rede:', error);
-    alert('Sem conexão com a internet.');
+    console.error(error);
+    alert('Erro ao salvar. Tente novamente.');
   }
 }
 
 async function listarBackupsDrive() {
-  if (!googleSignedIn) return alert('Faça login primeiro!');
-  const token = localStorage.getItem('google_token');
-
+  if (!gapi.client.getToken()) return tokenClient.requestAccessToken();
   try {
-    const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fjson%27%20and%20%27appDataFolder%27%20in%20parents&spaces=appDataFolder', {
-      headers: { 'Authorization': 'Bearer ' + token }
+    const response = await gapi.client.drive.files.list({
+      spaces: 'appDataFolder',
+      fields: 'files(id, name)',
+      q: 'mimeType="application/json"'
     });
-    const data = await response.json();
+    const files = response.result.files;
+    if (!files || files.length === 0) return alert('Nenhum backup encontrado.');
 
-    if (!data.files || data.files.length === 0) return alert('Nenhum backup encontrado no Drive.');
-
-    let msg = 'Últimos 5 backups:\n\n';
-    data.files.slice(-5).reverse().forEach(f => {
+    let msg = 'Últimos backups:\n\n';
+    files.slice(-5).reverse().forEach(f => {
       const date = f.name.match(/\d{4}-\d{2}-\d{2}/)?.[0] || 'Data desconhecida';
       msg += `• ${date} (ID: ${f.id})\n`;
     });
-    msg += '\nCole o ID do backup para restaurar:';
-
+    msg += '\nCole o ID para restaurar:';
     const id = prompt(msg);
     if (!id) return;
 
-    const fileResp = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {
-      headers: { 'Authorization': 'Bearer ' + token }
+    const file = await gapi.client.drive.files.get({
+      fileId: id,
+      alt: 'media'
     });
-
-    if (fileResp.ok) {
-      const dados = await fileResp.json();
-      if (confirm(`Restaurar backup de ${new Date(dados.timestamp).toLocaleDateString()}?\n\nIsso substituirá seu progresso atual.`)) {
-        historico = dados.historico;
-        salvar();
-        alert('Backup restaurado com sucesso!');
-      }
-    } else {
-      alert('ID inválido ou arquivo corrompido.');
+    const dados = JSON.parse(file.body);
+    if (confirm(`Restaurar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
+      historico = dados.historico;
+      salvar();
+      alert('Backup restaurado!');
     }
   } catch (error) {
-    alert('Erro ao conectar com o Drive.');
+    alert('Erro ao carregar backups.');
   }
 }
 
@@ -458,6 +809,12 @@ function formatarHora(iso) {
 function exportarPDF() { window.print(); }
 
 // === INICIALIZAÇÃO ===
-setInterval(() => { if (!googleLoaded) initializeGoogleSignIn(); }, 500);
-window.onload = () => { atualizarTudo(); };
+gapi.load('client', initializeGapi);
+window.onload = () => {
+  initializeGis();
+  atualizarTudo();
+};
 </script>
+
+</body>
+</html>
