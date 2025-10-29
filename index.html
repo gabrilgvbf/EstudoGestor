@@ -211,8 +211,15 @@
 
 <script>
 // === DADOS ===
-const materias = [ /* mesmo array de matérias do código anterior */ ];
-// (cole aqui o array completo de `materias` do seu código anterior)
+const materias =  [
+  {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
+  {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicos'],peso:1},
+  {nome:'MATEMÁTICA',topicos:['Números inteiros, racionais e reais','Sistema legal de medidas','Razões e proporções','Lógica proposicional','Noções de conjuntos','Relações e funções','Matrizes','Determinantes','Sistemas lineares','Sequências','Progressões aritméticas e geométricas'],peso:2},
+  {nome:'ATUALIDADES DO MERCADO FINANCEIRO',topicos:['Bancos na Era Digital','Internet banking e Mobile banking','Open banking','Fintechs, startups e big techs','Shadow banking','Blockchain e criptomoedas','PIX e arranjos de pagamento','Transformação digital no sistema financeiro'],peso:1},
+  {nome:'PROBABILIDADE E ESTATÍSTICA',topicos:['Representação tabular e gráfica','Medidas de tendência central e dispersão','Variáveis aleatórias e distribuições','Teorema de Bayes e probabilidade condicional','Distribuição binomial e normal','Noções de amostragem e inferência estatística'],peso:1},
+  {nome:'CONHECIMENTOS BANCÁRIOS',topicos:['Sistema Financeiro Nacional','Mercado financeiro','Política monetária e SELIC','Orçamento público e dívida pública','Produtos bancários','Mercado de câmbio','Taxas de juros e curva de juros','Lavagem de dinheiro e LGPD','Segurança cibernética e responsabilidade socioambiental'],peso:2},
+  {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
+];
 
 let historico = JSON.parse(localStorage.getItem('bb-historico-v6')) || [];
 let cicloAtual = [];
