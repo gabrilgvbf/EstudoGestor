@@ -6,8 +6,7 @@
   <title>BB Agente TI - Plano de Estudos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Google APIs -->
-  <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Google Identity Services (GSI) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
@@ -240,8 +239,6 @@
 
     .drive-status { text-align: center; margin: 15px 0; font-weight: 500; }
 
-    #g-signin2 { margin: 10px auto; display: block; }
-
     @media (max-width: 768px) {
       header h1 { font-size: 1.6rem; }
       .topico-item { flex-direction: column; align-items: flex-start; }
@@ -259,8 +256,19 @@
 
   <div class="drive-status" id="driveStatus">Carregando Google Drive...</div>
 
-  <div style="text-align: center; margin: 15px 0;">
-    <div id="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+  <div style="text-align: center; margin: 20px 0;">
+    <div id="g_id_onload"
+         data-client_id="374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div id="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="filled_blue"
+         data-text="signin_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
   </div>
 
   <div class="stats-grid">
@@ -343,8 +351,8 @@
     </div>
   </div>
 
-  <div class="pomodoro" id="pomodoroSection" style="display:none;">
-    <h3>Pomodoro Ativo</h3>
+  <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
+    <h3>Pomodoro</h3>
     <div id="timer">25:00</div>
     <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
     <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
@@ -353,12 +361,10 @@
 </div>
 
 <script>
-// === GOOGLE DRIVE CONFIG ===
+// === CONFIGURAÇÕES ===
 const CLIENT_ID = '374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-let gapiInited = false;
 
-// === DADOS DAS MATÉRIAS ===
+// === DADOS ===
 const materias = [
   {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
   {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicos'],peso:1},
@@ -369,13 +375,14 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = JSON.parse(localStorage.getItem('bb-historico-v9')) || [];
+let historico = JSON.parse(localStorage.getItem('bb-historico-v10')) || [];
 let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
 let pomodoroTime = 25 * 60, timerInterval = null;
+let googleLoaded = false, googleSignedIn = false;
 
 // === SALVAR E ATUALIZAR ===
 function salvar() {
-  localStorage.setItem('bb-historico-v9', JSON.stringify(historico));
+  localStorage.setItem('bb-historico-v10', JSON.stringify(historico));
   atualizarTudo();
 }
 
@@ -383,6 +390,128 @@ function atualizarTudo() {
   atualizarTabela();
   atualizarEstatisticas();
   renderizarMaterias();
+  atualizarStatusDrive();
+}
+
+// === GOOGLE SIGN-IN (GSI) ===
+function initializeGoogleSignIn() {
+  if (typeof google !== 'undefined' && google.accounts && !googleLoaded) {
+    googleLoaded = true;
+    console.log('Google GSI carregado!');
+
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: handleCredentialResponse
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById('g_id_signin'),
+      { theme: "filled_blue", size: "large", text: "signin_with" }
+    );
+
+    const token = localStorage.getItem('google_token');
+    if (token) {
+      googleSignedIn = true;
+      atualizarStatusDrive();
+    }
+  }
+}
+
+function handleCredentialResponse(response) {
+  googleSignedIn = true;
+  localStorage.setItem('google_token', response.credential);
+  atualizarStatusDrive();
+  if (confirm('Fazer backup automático no Drive agora?')) exportarParaDrive();
+}
+
+function logoutGoogle() {
+  localStorage.removeItem('google_token');
+  googleSignedIn = false;
+  atualizarStatusDrive();
+}
+
+function atualizarStatusDrive() {
+  const el = document.getElementById('driveStatus');
+  if (!googleLoaded) {
+    el.innerHTML = 'Carregando Google Drive...';
+    return;
+  }
+  if (googleSignedIn) {
+    el.innerHTML = 'Conectado ao Google Drive! <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem; margin-left:10px;" onclick="logoutGoogle()">Sair</button>';
+  } else {
+    el.innerHTML = 'Clique no botão acima para conectar ao Google Drive';
+  }
+}
+
+// === DRIVE ===
+async function exportarParaDrive() {
+  if (!googleSignedIn) return alert('Faça login no Google primeiro!');
+  const token = localStorage.getItem('google_token');
+  if (!token) return alert('Token não encontrado. Faça login novamente.');
+
+  const dados = { version: 'v10', timestamp: new Date().toISOString(), historico };
+  const content = JSON.stringify(dados, null, 2);
+  const fileName = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
+
+  const boundary = '-------314159265358979323846';
+  const delimiter = "\r\n--" + boundary + "\r\n";
+  const close_delim = "\r\n--" + boundary + "--";
+
+  const metadata = { name: fileName, mimeType: 'application/json', parents: ['appDataFolder'] };
+  const body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter +
+               'Content-Type: application/json\r\n\r\n' + content + close_delim;
+
+  try {
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary },
+      body: body
+    });
+
+    if (response.ok) {
+      alert('Backup salvo no Google Drive!');
+    } else {
+      alert('Erro ao salvar. Faça login novamente.');
+    }
+  } catch (error) {
+    alert('Erro de conexão.');
+  }
+}
+
+async function listarBackupsDrive() {
+  if (!googleSignedIn) return alert('Faça login no Google primeiro!');
+  const token = localStorage.getItem('google_token');
+  if (!token) return alert('Token não encontrado.');
+
+  try {
+    const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fjson%27%20and%20%27appDataFolder%27%20in%20parents&spaces=appDataFolder', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await response.json();
+
+    if (!data.files || data.files.length === 0) return alert('Nenhum backup encontrado.');
+
+    let msg = 'Backups no Drive:\n\n';
+    data.files.slice(-5).reverse().forEach(f => msg += `• ${f.name} (ID: ${f.id})\n`);
+    msg += '\nDigite o ID do backup para importar:';
+
+    const id = prompt(msg);
+    if (!id) return;
+
+    const fileResp = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (fileResp.ok) {
+      const dados = await fileResp.json();
+      if (confirm(`Importar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
+        historico = dados.historico;
+        salvar();
+        alert('Backup importado!');
+      }
+    } else {
+      alert('ID inválido.');
+    }
+  } catch (error) {
+    alert('Erro ao conectar com o Drive.');
+  }
 }
 
 // === TABELA HISTÓRICO ===
@@ -470,9 +599,9 @@ function renderizarMaterias() {
               <div class="status ${statusClass}"></div>
               <div class="topico-text">${t}</div>
               <div class="topico-actions">
-                ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t}')">Iniciar</button>` : ''}
-                ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t}')">Finalizar</button>` : ''}
-                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t}','${(reg?.nota||'').replace(/'/g, "\\'")}')">Note</button>
+                ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t.replace(/'/g, "\\'")}')">Iniciar</button>` : ''}
+                ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t.replace(/'/g, "\\'")}')">Finalizar</button>` : ''}
+                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t.replace(/'/g, "\\'")}','${(reg?.nota||'').replace(/'/g, "\\'")}')">Note</button>
               </div>
             </div>
           `;
@@ -532,7 +661,7 @@ function fecharModal() {
   document.getElementById('notaModal').style.display = 'none';
 }
 
-// === CICLO DE ESTUDO (REVISÃO A CADA 7 DIAS) ===
+// === CICLO DE ESTUDO ===
 function gerarCiclo() {
   const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
   const agora = new Date();
@@ -685,86 +814,8 @@ function formatarHora(iso) {
 
 function exportarPDF() { window.print(); }
 
-// === GOOGLE DRIVE ===
-function handleClientLoad() {
-  gapi.load('client:auth2', () => {
-    gapi.client.init({ clientId: CLIENT_ID, scope: SCOPES }).then(() => {
-      gapiInited = true;
-      atualizarStatusDrive();
-      gapi.auth2.getAuthInstance().isSignedIn.listen(atualizarStatusDrive);
-    });
-  });
-}
-
-function onSignIn() { atualizarStatusDrive(); }
-
-function atualizarStatusDrive() {
-  const el = document.getElementById('driveStatus');
-  if (!gapiInited) { el.textContent = 'Carregando...'; return; }
-  const signedIn = gapi.auth2.getAuthInstance().isSignedIn.get();
-  el.textContent = signedIn ? 'Conectado ao Google Drive' : 'Clique para conectar';
-  el.style.color = signedIn ? '#28a745' : '#dc3545';
-}
-
-async function exportarParaDrive() {
-  if (!gapiInited || !gapi.auth2.getAuthInstance().isSignedIn.get()) return alert('Faça login no Google!');
-  const dados = { version: 'v9', timestamp: new Date().toISOString(), historico };
-  const content = JSON.stringify(dados, null, 2);
-  const fileName = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
-
-  const boundary = '-------314159265358979323846';
-  const delimiter = "\r\n--" + boundary + "\r\n";
-  const close_delim = "\r\n--" + boundary + "--";
-
-  const metadata = { name: fileName, mimeType: 'application/json', parents: ['appDataFolder'] };
-  const body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter +
-               'Content-Type: application/json\r\n\r\n' + content + close_delim;
-
-  const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-
-  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'multipart/related; boundary=' + boundary },
-    body: body
-  });
-
-  if (response.ok) alert('Backup salvo no Drive!');
-  else alert('Erro ao salvar.');
-}
-
-async function listarBackupsDrive() {
-  if (!gapiInited || !gapi.auth2.getAuthInstance().isSignedIn.get()) return alert('Faça login no Google!');
-  const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-  const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fjson%27%20and%20%27appDataFolder%27%20in%20parents&spaces=appDataFolder', {
-    headers: { 'Authorization': 'Bearer ' + accessToken }
-  });
-  const data = await response.json();
-
-  if (!data.files || data.files.length === 0) return alert('Nenhum backup encontrado.');
-
-  let msg = 'Backups no Drive:\n\n';
-  data.files.forEach(f => msg += `• ${f.name} (ID: ${f.id})\n`);
-  msg += '\nDigite o ID:';
-
-  const id = prompt(msg);
-  if (id && data.files.find(f => f.id === id)) {
-    const fileResp = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {
-      headers: { 'Authorization': 'Bearer ' + accessToken }
-    });
-    const dados = await fileResp.json();
-    if (confirm(`Importar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
-      historico = dados.historico;
-      salvar();
-      alert('Backup importado!');
-    }
-  } else {
-    alert('ID inválido.');
-  }
-}
-
-// === BACKUP JSON LOCAL ===
 function exportarBackup() {
-  const dados = { version: 'v9', timestamp: new Date().toISOString(), historico };
+  const dados = { version: 'v10', timestamp: new Date().toISOString(), historico };
   const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -792,10 +843,8 @@ function importarBackup(e) {
 }
 
 // === INICIALIZAÇÃO ===
-window.onload = () => {
-  handleClientLoad();
-  atualizarTudo();
-};
+setInterval(() => { if (!googleLoaded) initializeGoogleSignIn(); }, 500);
+window.onload = () => { atualizarTudo(); };
 </script>
 
 </body>
