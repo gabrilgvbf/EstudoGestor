@@ -127,9 +127,143 @@
       color: #555;
     }
 
-    #cicloResult { display: none; }
+    .materia {
+      background: var(--card);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid var(--borda);
+    }
 
-    .materia, .historico { margin-top: 20px; }
+    .materia-header {
+      background: var(--azul-bb);
+      color: white;
+      padding: 16px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
+    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
+
+    .materia-content {
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+
+    .materia-content.open {
+      padding: 16px 20px;
+      max-height: 1000px;
+    }
+
+    .topico-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px dashed #e9ecef;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .topico-item:last-child { border-bottom: none; }
+
+    .topico-text { flex: 1; font-size: 0.95rem; }
+
+    .topico-actions { display: flex; gap: 6px; }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .status {
+      width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
+      border: 2px solid #ccc;
+    }
+
+    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
+    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
+    .status.concluido { background: #d4edda; border-color: var(--verde); }
+
+    .pomodoro {
+      text-align: center;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 12px;
+      margin: 20px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: none;
+    }
+
+    #timer { font-size: 3rem; font-weight: bold; color: var(--azul-bb); }
+
+    .historico table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .historico th, .historico td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--borda);
+    }
+
+    .historico th { background: var(--azul-bb); color: white; }
+    .concluido { background: #d4edda; }
+    .andamento { background: #fff3cd; }
+
+    .btn-delete {
+      background: var(--vermelho);
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
+
+    #cicloResult {
+      margin: 20px 0;
+      padding: 15px;
+      background: #e7f3ff;
+      border-radius: 8px;
+      display: none;
+      border: 1px solid #b3e0ff;
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.6rem; }
+      .topico-item { flex-direction: column; align-items: flex-start; }
+      .topico-actions { width: 100%; justify-content: flex-end; }
+    }
   </style>
 </head>
 <body>
@@ -193,9 +327,10 @@
 
   <div id="cicloResult"></div>
 
-  <!-- Matérias e Histórico (mesmo do anterior) -->
+  <!-- Matérias -->
   <div id="materias"></div>
 
+  <!-- Histórico -->
   <div class="historico">
     <h2>Histórico de Estudo</h2>
     <table>
@@ -209,9 +344,21 @@
   </div>
 </div>
 
+<!-- Modal de Nota -->
+<div class="modal" id="notaModal">
+  <div class="modal-content">
+    <h3>Notas do Tópico</h3>
+    <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
+    <div style="text-align:right; margin-top:10px;">
+      <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// === DADOS ===
-const materias =  [
+// === DADOS DAS MATÉRIAS ===
+const materias = [
   {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
   {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicos'],peso:1},
   {nome:'MATEMÁTICA',topicos:['Números inteiros, racionais e reais','Sistema legal de medidas','Razões e proporções','Lógica proposicional','Noções de conjuntos','Relações e funções','Matrizes','Determinantes','Sistemas lineares','Sequências','Progressões aritméticas e geométricas'],peso:2},
@@ -221,16 +368,18 @@ const materias =  [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = JSON.parse(localStorage.getItem('bb-historico-v6')) || [];
+let historico = JSON.parse(localStorage.getItem('bb-historico-v7')) || [];
 let cicloAtual = [];
 let indiceAtual = 0;
 let timerCiclo = null;
 let tempoRestante = 0;
 let cicloPausado = false;
+let timerInterval = null;
+let pomodoroTime = 25 * 60;
 
-// === FUNÇÕES PRINCIPAIS ===
+// === SALVAR E ATUALIZAR ===
 function salvar() {
-  localStorage.setItem('bb-historico-v6', JSON.stringify(historico));
+  localStorage.setItem('bb-historico-v7', JSON.stringify(historico));
   atualizarTudo();
 }
 
@@ -240,7 +389,171 @@ function atualizarTudo() {
   renderizarMaterias();
 }
 
-// === GERAR CICLO + INICIAR TIMER ===
+// === ATUALIZAR TABELA ===
+function atualizarTabela() {
+  const tbody = document.getElementById('tabelaHistorico');
+  tbody.innerHTML = '';
+  historico.forEach((h, index) => {
+    const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
+    const tr = document.createElement('tr');
+    tr.className = h.status === 'Concluído' ? 'concluido' : h.status === 'Em andamento' ? 'andamento' : '';
+    tr.innerHTML = `
+      <td>${h.materia}</td>
+      <td>${h.topico}</td>
+      <td>${formatarHora(h.inicio)}</td>
+      <td>${h.fim ? formatarHora(h.fim) : '-'}</td>
+      <td>${duracao}</td>
+      <td>${h.status}</td>
+      <td><button class="btn-delete" onclick="excluirRegistro(${index})">Excluir</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function excluirRegistro(index) {
+  if (confirm('Excluir este registro do histórico?')) {
+    historico.splice(index, 1);
+    salvar();
+  }
+}
+
+// === ESTATÍSTICAS ===
+function atualizarEstatisticas() {
+  const hoje = new Date().toISOString().slice(0,10);
+  let tempoHoje = 0, tempoSemana = 0, concluidos = 0, totalPesoConcluido = 0, totalPeso = 0;
+
+  const inicioSemana = new Date();
+  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1);
+  inicioSemana.setHours(0,0,0,0);
+
+  materias.forEach(m => totalPeso += m.peso * m.topicos.length);
+
+  historico.forEach(h => {
+    if (h.fim) {
+      const inicio = new Date(h.inicio);
+      const fim = new Date(h.fim);
+      const mins = Math.round((fim - inicio) / 60000);
+      if (h.inicio.slice(0,10) === hoje) tempoHoje += mins;
+      if (inicio >= inicioSemana) tempoSemana += mins;
+      if (h.status === 'Concluído') {
+        concluidos++;
+        const materia = materias.find(m => m.nome === h.materia);
+        if (materia) totalPesoConcluido += materia.peso;
+      }
+    }
+  });
+
+  const progresso = totalPeso > 0 ? Math.round((totalPesoConcluido / totalPeso) * 100) : 0;
+
+  document.getElementById('tempoHoje').textContent = tempoHoje;
+  document.getElementById('tempoSemana').textContent = tempoSemana;
+  document.getElementById('topicosConcluidos').textContent = concluidos;
+  document.getElementById('progressoGeral').textContent = progresso;
+}
+
+// === RENDERIZAR MATÉRIAS ===
+function renderizarMaterias() {
+  const container = document.getElementById('materias');
+  container.innerHTML = '';
+  materias.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'materia';
+    const concluidoCount = m.topicos.filter(t => 
+      historico.some(h => h.materia === m.nome && h.topico === t && h.status === 'Concluído')
+    ).length;
+
+    div.innerHTML = `
+      <div class="materia-header" onclick="toggleMateria(this)">
+        <div>
+          ${m.nome} <span class="peso">(Peso: ${m.peso})</span>
+          <small style="opacity:0.8; margin-left:8px;">${concluidoCount}/${m.topicos.length}</small>
+        </div>
+        <span class="arrow">Down Arrow</span>
+      </div>
+      <div class="materia-content">
+        ${m.topicos.map(t => {
+          const reg = historico.find(h => h.materia === m.nome && h.topico === t);
+          const status = reg?.status || 'Pendente';
+          const statusClass = status === 'Concluído' ? 'concluido' : status === 'Em andamento' ? 'andamento' : 'pendente';
+          const nota = reg?.nota || '';
+          return `
+            <div class="topico-item">
+              <div class="status ${statusClass}"></div>
+              <div class="topico-text">${t}</div>
+              <div class="topico-actions">
+                ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t}')">Iniciar</button>` : ''}
+                ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t}')">Finalizar</button>` : ''}
+                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t}','${nota.replace(/'/g, "\\'")}')">Note</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleMateria(header) {
+  const content = header.nextElementSibling;
+  const arrow = header.querySelector('.arrow');
+  const isOpen = content.classList.contains('open');
+  content.classList.toggle('open');
+  arrow.textContent = isOpen ? 'Down Arrow' : 'Up Arrow';
+}
+
+// === AÇÕES DE TÓPICO ===
+function iniciar(materia, topico) {
+  if (historico.some(h => h.materia === materia && h.topico === topico && !h.fim)) {
+    alert('Já em andamento!');
+    return;
+  }
+  historico.push({ materia, topico, inicio: new Date().toISOString(), fim: null, status: 'Em andamento', nota: '' });
+  salvar();
+}
+
+function finalizar(materia, topico) {
+  const reg = historico.find(h => h.materia === materia && h.topico === topico && !h.fim);
+  if (!reg) { alert('Não iniciado!'); return; }
+  reg.fim = new Date().toISOString();
+  reg.status = 'Concluído';
+  salvar();
+}
+
+// === RESETAR PROGRESSO ===
+function resetarProgresso() {
+  if (confirm('Resetar todo o progresso? (Histórico será mantido)')) {
+    historico.forEach(h => {
+      h.inicio = null;
+      h.fim = null;
+      h.status = 'Pendente';
+      h.nota = '';
+    });
+    salvar();
+  }
+}
+
+// === NOTAS ===
+let notaAtual = {};
+function abrirNota(materia, topico, nota) {
+  notaAtual = { materia, topico };
+  document.getElementById('notaText').value = nota;
+  document.getElementById('notaModal').style.display = 'flex';
+}
+
+function salvarNota() {
+  const nota = document.getElementById('notaText').value;
+  const reg = historico.find(h => h.materia === notaAtual.materia && h.topico === notaAtual.topico);
+  if (reg) reg.nota = nota;
+  salvar();
+  fecharModal();
+}
+
+function fecharModal() {
+  document.getElementById('notaModal').style.display = 'none';
+}
+
+// === CICLO DE ESTUDO + TIMER SEQUENCIAL ===
 function gerarCiclo() {
   const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
   const agora = new Date();
@@ -279,7 +592,6 @@ function gerarCiclo() {
   iniciarCiclo();
 }
 
-// === INICIAR CICLO ===
 function iniciarCiclo() {
   indiceAtual = 0;
   document.getElementById('cicloAtivo').style.display = 'block';
@@ -288,7 +600,6 @@ function iniciarCiclo() {
   iniciarTimerTopico();
 }
 
-// === INICIAR TIMER DO TÓPICO ATUAL ===
 function iniciarTimerTopico() {
   if (indiceAtual >= cicloAtual.length) {
     finalizarCiclo();
@@ -312,20 +623,16 @@ function iniciarTimerTopico() {
   atualizarTimerDisplay();
 }
 
-// === NOTIFICAR FIM DO TÓPICO ===
 function notificarFimTopico() {
-  // Som
-  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZ
-  ');
+  // Som de notificação
+  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZ');
   audio.play().catch(() => {});
 
-  // Alerta
   alert(`Tempo esgotado!\n\nTópico: ${cicloAtual[indiceAtual].topico}\n\nClique em "Próximo" para continuar.`);
 
   document.getElementById('btnProximo').style.display = 'inline-block';
 }
 
-// === PRÓXIMO TÓPICO ===
 function proximoTopico() {
   indiceAtual++;
   document.getElementById('btnProximo').style.display = 'none';
@@ -337,14 +644,12 @@ function proximoTopico() {
   }
 }
 
-// === PAUSAR/RETOMAR ===
 function pausarCiclo() {
   cicloPausado = !cicloPausado;
   const btn = document.querySelector('#cicloAtivo .btn-warning');
   btn.textContent = cicloPausado ? 'Retomar' : 'Pausar';
 }
 
-// === PARAR CICLO ===
 function pararCiclo() {
   clearInterval(timerCiclo);
   document.getElementById('cicloAtivo').style.display = 'none';
@@ -352,7 +657,6 @@ function pararCiclo() {
   indiceAtual = 0;
 }
 
-// === FINALIZAR CICLO ===
 function finalizarCiclo() {
   clearInterval(timerCiclo);
   alert('Ciclo concluído com sucesso!');
@@ -360,7 +664,6 @@ function finalizarCiclo() {
   cicloAtual = [];
 }
 
-// === ATUALIZAR UI DO CICLO ===
 function atualizarCicloUI() {
   const item = cicloAtual[indiceAtual];
   document.getElementById('cicloTitulo').textContent = `${item.tipo}: ${item.materia}`;
@@ -383,13 +686,58 @@ function atualizarProgressoCiclo() {
   document.getElementById('progressoTexto').textContent = `${Math.round(progressoTotal)}%`;
 }
 
-// === RESTANTE DO CÓDIGO (iniciar, finalizar, etc.) ===
-function iniciar(materia, topico) { /* mesmo do anterior */ }
-function finalizar(materia, topico) { /* mesmo do anterior */ }
-function resetarProgresso() { /* mesmo do anterior */ }
+// === POMODORO ===
+function iniciarPomodoro() {
+  document.getElementById('pomodoroSection').style.display = 'block';
+  pomodoroTime = 25 * 60;
+  atualizarTimerPomodoro();
+  timerInterval = setInterval(() => {
+    if (pomodoroTime > 0) {
+      pomodoroTime--;
+      atualizarTimerPomodoro();
+    } else {
+      clearInterval(timerInterval);
+      alert('Pomodoro concluído! 5 min de pausa!');
+    }
+  }, 1000);
+}
+
+function pausaPomodoro() { clearInterval(timerInterval); }
+function pararPomodoro() {
+  clearInterval(timerInterval);
+  document.getElementById('pomodoroSection').style.display = 'none';
+}
+
+function atualizarTimerPomodoro() {
+  const mins = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
+  const secs = String(pomodoroTime % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = `${mins}:${secs}`;
+}
+
+// === UTILS ===
+function formatarHora(iso) {
+  return new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+}
+
+function exportarPDF() {
+  window.print();
+}
 
 // === INICIALIZAÇÃO ===
 atualizarTudo();
+
+// Adicionar Pomodoro Section se não existir
+if (!document.getElementById('pomodoroSection')) {
+  document.querySelector('.controls').insertAdjacentHTML('afterend', `
+    <div class="pomodoro" id="pomodoroSection">
+      <h3>Pomodoro Ativo</h3>
+      <div id="timer">25:00</div>
+      <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
+      <button class="btn-warning" onclick="pausaPomodoro()">Pausar</button>
+      <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
+    </div>
+  `);
+}
 </script>
 
 </body>
