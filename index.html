@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BB Agente TI - Plano de Estudos</title>
+  <title>BB Agente TI - Plano de Estudos Pro</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -183,6 +183,14 @@
     .concluido { background: #d4edda; }
     .andamento { background: #fff3cd; }
 
+    .btn-delete {
+      background: var(--vermelho);
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
     .modal {
       display: none;
       position: fixed;
@@ -260,7 +268,7 @@
     <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
     <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
     <button class="btn-warning" onclick="pausaPomodoro()">Pausa</button>
-    <button class="btn-danger" onclick="resetHistorico()">Resetar</button>
+    <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
     <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
   </div>
 
@@ -283,7 +291,7 @@
     <table>
       <thead>
         <tr>
-          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th>
+          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
         </tr>
       </thead>
       <tbody id="tabelaHistorico"></tbody>
@@ -315,13 +323,13 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = JSON.parse(localStorage.getItem('bb-historico-v4')) || [];
+let historico = JSON.parse(localStorage.getItem('bb-historico-v5')) || [];
 let timerInterval = null;
 let pomodoroTime = 25 * 60;
 
 // === FUNÇÕES PRINCIPAIS ===
 function salvar() {
-  localStorage.setItem('bb-historico-v4', JSON.stringify(historico));
+  localStorage.setItem('bb-historico-v5', JSON.stringify(historico));
   atualizarTudo();
 }
 
@@ -335,13 +343,28 @@ function atualizarTudo() {
 function atualizarTabela() {
   const tbody = document.getElementById('tabelaHistorico');
   tbody.innerHTML = '';
-  historico.forEach(h => {
+  historico.forEach((h, index) => {
     const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
     const tr = document.createElement('tr');
     tr.className = h.status === 'Concluído' ? 'concluido' : h.status === 'Em andamento' ? 'andamento' : '';
-    tr.innerHTML = `<td>${h.materia}</td><td>${h.topico}</td><td>${formatarHora(h.inicio)}</td><td>${h.fim ? formatarHora(h.fim) : '-'}</td><td>${duracao}</td><td>${h.status}</td>`;
+    tr.innerHTML = `
+      <td>${h.materia}</td>
+      <td>${h.topico}</td>
+      <td>${formatarHora(h.inicio)}</td>
+      <td>${h.fim ? formatarHora(h.fim) : '-'}</td>
+      <td>${duracao}</td>
+      <td>${h.status}</td>
+      <td><button class="btn-delete" onclick="excluirRegistro(${index})">Excluir</button></td>
+    `;
     tbody.appendChild(tr);
   });
+}
+
+function excluirRegistro(index) {
+  if (confirm('Excluir este registro do histórico?')) {
+    historico.splice(index, 1);
+    salvar();
+  }
 }
 
 function atualizarEstatisticas() {
@@ -445,6 +468,19 @@ function finalizar(materia, topico) {
   salvar();
 }
 
+// === RESETAR PROGRESSO (SÓ LIMPA STATUS, NÃO O HISTÓRICO) ===
+function resetarProgresso() {
+  if (confirm('Resetar todo o progresso? (Histórico será mantido)')) {
+    historico.forEach(h => {
+      h.inicio = null;
+      h.fim = null;
+      h.status = 'Pendente';
+      h.nota = '';
+    });
+    salvar();
+  }
+}
+
 // === NOTAS ===
 let notaAtual = {};
 function abrirNota(materia, topico, nota) {
@@ -544,13 +580,6 @@ function atualizarTimer() {
 // === UTILS ===
 function formatarHora(iso) {
   return new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-}
-
-function resetHistorico() {
-  if (confirm('Resetar TODO o histórico?')) {
-    historico = [];
-    salvar();
-  }
 }
 
 function exportarPDF() {
