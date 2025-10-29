@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BB Agente TI - Ciclo com Timer</title>
+  <title>BB Agente TI - Plano de Estudos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Google APIs -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     :root {
       --azul-bb: #004aad;
@@ -74,12 +79,7 @@
       font-size: 0.95rem;
     }
 
-    select {
-      background: white;
-      border: 1px solid var(--borda);
-      color: #333;
-    }
-
+    select { background: white; border: 1px solid var(--borda); color: #333; }
     .btn-primary { background: var(--azul-bb); color: white; }
     .btn-success { background: var(--verde); color: white; }
     .btn-warning { background: var(--amarelo); color: #212529; }
@@ -192,18 +192,6 @@
     .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
     .status.concluido { background: #d4edda; border-color: var(--verde); }
 
-    .pomodoro {
-      text-align: center;
-      padding: 20px;
-      background: var(--card);
-      border-radius: 12px;
-      margin: 20px 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      display: none;
-    }
-
-    #timer { font-size: 3rem; font-weight: bold; color: var(--azul-bb); }
-
     .historico table {
       width: 100%;
       border-collapse: collapse;
@@ -250,14 +238,9 @@
 
     textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
 
-    #cicloResult {
-      margin: 20px 0;
-      padding: 15px;
-      background: #e7f3ff;
-      border-radius: 8px;
-      display: none;
-      border: 1px solid #b3e0ff;
-    }
+    .drive-status { text-align: center; margin: 15px 0; font-weight: 500; }
+
+    #g-signin2 { margin: 10px auto; display: block; }
 
     @media (max-width: 768px) {
       header h1 { font-size: 1.6rem; }
@@ -274,7 +257,12 @@
     <p>Concurso 2025/2026 | Ciclo com Timer Sequencial</p>
   </header>
 
-  <!-- Estatísticas -->
+  <div class="drive-status" id="driveStatus">Carregando Google Drive...</div>
+
+  <div style="text-align: center; margin: 15px 0;">
+    <div id="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+  </div>
+
   <div class="stats-grid">
     <div class="stat-card">
       <h3>Tempo Hoje</h3>
@@ -294,7 +282,6 @@
     </div>
   </div>
 
-  <!-- Controles -->
   <div class="controls">
     <select id="cicloTempo">
       <option value="15">15 min</option>
@@ -305,11 +292,17 @@
     </select>
     <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
     <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
+    <button class="btn-warning" onclick="exportarParaDrive()">Backup no Drive</button>
+    <button class="btn-warning" onclick="listarBackupsDrive()">Importar do Drive</button>
+    <button class="btn-secondary" onclick="exportarBackup()">Exportar JSON</button>
+    <label class="btn-secondary" style="cursor:pointer; margin:0;">
+      Importar JSON
+      <input type="file" id="importFile" accept=".json" onchange="importarBackup(event)" style="display:none;">
+    </label>
     <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
     <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
   </div>
 
-  <!-- Ciclo Ativo com Timer -->
   <div class="ciclo-ativo" id="cicloAtivo">
     <h3 id="cicloTitulo">Ciclo Iniciado</h3>
     <div class="ciclo-timer" id="timerCiclo">00:00</div>
@@ -325,12 +318,8 @@
     </div>
   </div>
 
-  <div id="cicloResult"></div>
-
-  <!-- Matérias -->
   <div id="materias"></div>
 
-  <!-- Histórico -->
   <div class="historico">
     <h2>Histórico de Estudo</h2>
     <table>
@@ -342,21 +331,33 @@
       <tbody id="tabelaHistorico"></tbody>
     </table>
   </div>
-</div>
 
-<!-- Modal de Nota -->
-<div class="modal" id="notaModal">
-  <div class="modal-content">
-    <h3>Notas do Tópico</h3>
-    <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
-    <div style="text-align:right; margin-top:10px;">
-      <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+  <div class="modal" id="notaModal">
+    <div class="modal-content">
+      <h3>Notas do Tópico</h3>
+      <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
+      <div style="text-align:right; margin-top:10px;">
+        <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+      </div>
     </div>
+  </div>
+
+  <div class="pomodoro" id="pomodoroSection" style="display:none;">
+    <h3>Pomodoro Ativo</h3>
+    <div id="timer">25:00</div>
+    <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
+    <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
+    <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
   </div>
 </div>
 
 <script>
+// === GOOGLE DRIVE CONFIG ===
+const CLIENT_ID = '374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+let gapiInited = false;
+
 // === DADOS DAS MATÉRIAS ===
 const materias = [
   {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
@@ -368,18 +369,13 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = JSON.parse(localStorage.getItem('bb-historico-v7')) || [];
-let cicloAtual = [];
-let indiceAtual = 0;
-let timerCiclo = null;
-let tempoRestante = 0;
-let cicloPausado = false;
-let timerInterval = null;
-let pomodoroTime = 25 * 60;
+let historico = JSON.parse(localStorage.getItem('bb-historico-v9')) || [];
+let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
+let pomodoroTime = 25 * 60, timerInterval = null;
 
 // === SALVAR E ATUALIZAR ===
 function salvar() {
-  localStorage.setItem('bb-historico-v7', JSON.stringify(historico));
+  localStorage.setItem('bb-historico-v9', JSON.stringify(historico));
   atualizarTudo();
 }
 
@@ -389,11 +385,11 @@ function atualizarTudo() {
   renderizarMaterias();
 }
 
-// === ATUALIZAR TABELA ===
+// === TABELA HISTÓRICO ===
 function atualizarTabela() {
   const tbody = document.getElementById('tabelaHistorico');
   tbody.innerHTML = '';
-  historico.forEach((h, index) => {
+  historico.forEach((h, i) => {
     const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
     const tr = document.createElement('tr');
     tr.className = h.status === 'Concluído' ? 'concluido' : h.status === 'Em andamento' ? 'andamento' : '';
@@ -404,15 +400,15 @@ function atualizarTabela() {
       <td>${h.fim ? formatarHora(h.fim) : '-'}</td>
       <td>${duracao}</td>
       <td>${h.status}</td>
-      <td><button class="btn-delete" onclick="excluirRegistro(${index})">Excluir</button></td>
+      <td><button class="btn-delete" onclick="excluirRegistro(${i})">Excluir</button></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-function excluirRegistro(index) {
-  if (confirm('Excluir este registro do histórico?')) {
-    historico.splice(index, 1);
+function excluirRegistro(i) {
+  if (confirm('Excluir este registro?')) {
+    historico.splice(i, 1);
     salvar();
   }
 }
@@ -458,16 +454,10 @@ function renderizarMaterias() {
   materias.forEach(m => {
     const div = document.createElement('div');
     div.className = 'materia';
-    const concluidoCount = m.topicos.filter(t => 
-      historico.some(h => h.materia === m.nome && h.topico === t && h.status === 'Concluído')
-    ).length;
-
+    const concluidos = m.topicos.filter(t => historico.some(h => h.materia === m.nome && h.topico === t && h.status === 'Concluído')).length;
     div.innerHTML = `
       <div class="materia-header" onclick="toggleMateria(this)">
-        <div>
-          ${m.nome} <span class="peso">(Peso: ${m.peso})</span>
-          <small style="opacity:0.8; margin-left:8px;">${concluidoCount}/${m.topicos.length}</small>
-        </div>
+        <div>${m.nome} <span class="peso">(Peso: ${m.peso})</span> <small style="opacity:0.8;">${concluidos}/${m.topicos.length}</small></div>
         <span class="arrow">Down Arrow</span>
       </div>
       <div class="materia-content">
@@ -475,7 +465,6 @@ function renderizarMaterias() {
           const reg = historico.find(h => h.materia === m.nome && h.topico === t);
           const status = reg?.status || 'Pendente';
           const statusClass = status === 'Concluído' ? 'concluido' : status === 'Em andamento' ? 'andamento' : 'pendente';
-          const nota = reg?.nota || '';
           return `
             <div class="topico-item">
               <div class="status ${statusClass}"></div>
@@ -483,7 +472,7 @@ function renderizarMaterias() {
               <div class="topico-actions">
                 ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t}')">Iniciar</button>` : ''}
                 ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t}')">Finalizar</button>` : ''}
-                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t}','${nota.replace(/'/g, "\\'")}')">Note</button>
+                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t}','${(reg?.nota||'').replace(/'/g, "\\'")}')">Note</button>
               </div>
             </div>
           `;
@@ -497,38 +486,28 @@ function renderizarMaterias() {
 function toggleMateria(header) {
   const content = header.nextElementSibling;
   const arrow = header.querySelector('.arrow');
-  const isOpen = content.classList.contains('open');
   content.classList.toggle('open');
-  arrow.textContent = isOpen ? 'Down Arrow' : 'Up Arrow';
+  arrow.textContent = content.classList.contains('open') ? 'Up Arrow' : 'Down Arrow';
 }
 
-// === AÇÕES DE TÓPICO ===
+// === AÇÕES ===
 function iniciar(materia, topico) {
-  if (historico.some(h => h.materia === materia && h.topico === topico && !h.fim)) {
-    alert('Já em andamento!');
-    return;
-  }
+  if (historico.some(h => h.materia === materia && h.topico === topico && !h.fim)) return alert('Já em andamento!');
   historico.push({ materia, topico, inicio: new Date().toISOString(), fim: null, status: 'Em andamento', nota: '' });
   salvar();
 }
 
 function finalizar(materia, topico) {
   const reg = historico.find(h => h.materia === materia && h.topico === topico && !h.fim);
-  if (!reg) { alert('Não iniciado!'); return; }
+  if (!reg) return alert('Não iniciado!');
   reg.fim = new Date().toISOString();
   reg.status = 'Concluído';
   salvar();
 }
 
-// === RESETAR PROGRESSO ===
 function resetarProgresso() {
-  if (confirm('Resetar todo o progresso? (Histórico será mantido)')) {
-    historico.forEach(h => {
-      h.inicio = null;
-      h.fim = null;
-      h.status = 'Pendente';
-      h.nota = '';
-    });
+  if (confirm('Resetar todo o progresso? (Histórico mantido)')) {
+    historico.forEach(h => { h.inicio = null; h.fim = null; h.status = 'Pendente'; h.nota = ''; });
     salvar();
   }
 }
@@ -553,11 +532,11 @@ function fecharModal() {
   document.getElementById('notaModal').style.display = 'none';
 }
 
-// === CICLO DE ESTUDO + TIMER SEQUENCIAL ===
+// === CICLO DE ESTUDO (REVISÃO A CADA 7 DIAS) ===
 function gerarCiclo() {
   const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
   const agora = new Date();
-  const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000); // <<< 7 DIAS
+  const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   cicloAtual = [];
 
@@ -566,27 +545,24 @@ function gerarCiclo() {
       const materia = materias.find(m => m.nome === h.materia);
       if (!materia) return;
 
-      const topicoObj = { materia: h.materia, topico: h.topico, peso: materia.peso };
+      const item = { materia: h.materia, topico: h.topico, peso: materia.peso };
 
       if (!h.fim) {
-        cicloAtual.push({ ...topicoObj, tipo: 'Estudo', urgencia: 3 });
-      } else if (new Date(h.fim) <= seteDiasAtras) { // <<< AQUI TAMBÉM
-        cicloAtual.push({ ...topicoObj, tipo: 'Revisão', urgencia: 2 });
+        cicloAtual.push({ ...item, tipo: 'Estudo', urgencia: 3 });
+      } else if (new Date(h.fim) <= seteDiasAtras) {
+        cicloAtual.push({ ...item, tipo: 'Revisão', urgencia: 2 });
       }
     }
   });
 
-  if (cicloAtual.length === 0) {
-    alert('Nenhum tópico iniciado para o ciclo!');
-    return;
-  }
+  if (cicloAtual.length === 0) return alert('Nenhum tópico iniciado!');
 
   cicloAtual.sort((a, b) => b.urgencia - a.urgencia || b.peso - a.peso);
 
-  const totalUrgenciaPeso = cicloAtual.reduce((s, i) => s + i.peso * i.urgencia, 0);
+  const total = cicloAtual.reduce((s, i) => s + i.peso * i.urgencia, 0);
   cicloAtual.forEach(item => {
-    const proporcao = (item.peso * item.urgencia) / totalUrgenciaPeso;
-    item.minutos = Math.max(3, Math.round(proporcao * tempoTotal));
+    const prop = (item.peso * item.urgencia) / total;
+    item.minutos = Math.max(3, Math.round(prop * tempoTotal));
   });
 
   iniciarCiclo();
@@ -601,11 +577,7 @@ function iniciarCiclo() {
 }
 
 function iniciarTimerTopico() {
-  if (indiceAtual >= cicloAtual.length) {
-    finalizarCiclo();
-    return;
-  }
-
+  if (indiceAtual >= cicloAtual.length) return finalizarCiclo();
   const item = cicloAtual[indiceAtual];
   tempoRestante = item.minutos * 60;
 
@@ -619,17 +591,11 @@ function iniciarTimerTopico() {
       notificarFimTopico();
     }
   }, 1000);
-
-  atualizarTimerDisplay();
 }
 
 function notificarFimTopico() {
-  // Som de notificação
-  const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZ');
-  audio.play().catch(() => {});
-
-  alert(`Tempo esgotado!\n\nTópico: ${cicloAtual[indiceAtual].topico}\n\nClique em "Próximo" para continuar.`);
-
+  new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZ').play().catch(() => {});
+  alert(`Tempo esgotado!\n\nTópico: ${cicloAtual[indiceAtual].topico}\n\nClique em "Próximo".`);
   document.getElementById('btnProximo').style.display = 'inline-block';
 }
 
@@ -646,20 +612,18 @@ function proximoTopico() {
 
 function pausarCiclo() {
   cicloPausado = !cicloPausado;
-  const btn = document.querySelector('#cicloAtivo .btn-warning');
-  btn.textContent = cicloPausado ? 'Retomar' : 'Pausar';
+  document.querySelector('#cicloAtivo .btn-warning').textContent = cicloPausado ? 'Retomar' : 'Pausar';
 }
 
 function pararCiclo() {
   clearInterval(timerCiclo);
   document.getElementById('cicloAtivo').style.display = 'none';
   cicloAtual = [];
-  indiceAtual = 0;
 }
 
 function finalizarCiclo() {
   clearInterval(timerCiclo);
-  alert('Ciclo concluído com sucesso!');
+  alert('Ciclo concluído!');
   document.getElementById('cicloAtivo').style.display = 'none';
   cicloAtual = [];
 }
@@ -680,10 +644,10 @@ function atualizarTimerDisplay() {
 
 function atualizarProgressoCiclo() {
   const item = cicloAtual[indiceAtual];
-  const progressoTopico = ((item.minutos * 60 - tempoRestante) / (item.minutos * 60)) * 100;
-  const progressoTotal = ((indiceAtual * 100 + progressoTopico) / cicloAtual.length);
-  document.getElementById('progressFill').style.width = `${progressoTotal}%`;
-  document.getElementById('progressoTexto').textContent = `${Math.round(progressoTotal)}%`;
+  const progTopico = ((item.minutos * 60 - tempoRestante) / (item.minutos * 60)) * 100;
+  const total = ((indiceAtual * 100 + progTopico) / cicloAtual.length);
+  document.getElementById('progressFill').style.width = `${total}%`;
+  document.getElementById('progressoTexto').textContent = `${Math.round(total)}%`;
 }
 
 // === POMODORO ===
@@ -697,12 +661,12 @@ function iniciarPomodoro() {
       atualizarTimerPomodoro();
     } else {
       clearInterval(timerInterval);
-      alert('Pomodoro concluído! 5 min de pausa!');
+      alert('Pomodoro concluído! 5 min de pausa.');
     }
   }, 1000);
 }
 
-function pausaPomodoro() { clearInterval(timerInterval); }
+function pausarPomodoro() { clearInterval(timerInterval); }
 function pararPomodoro() {
   clearInterval(timerInterval);
   document.getElementById('pomodoroSection').style.display = 'none';
@@ -719,25 +683,119 @@ function formatarHora(iso) {
   return new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
 }
 
-function exportarPDF() {
-  window.print();
+function exportarPDF() { window.print(); }
+
+// === GOOGLE DRIVE ===
+function handleClientLoad() {
+  gapi.load('client:auth2', () => {
+    gapi.client.init({ clientId: CLIENT_ID, scope: SCOPES }).then(() => {
+      gapiInited = true;
+      atualizarStatusDrive();
+      gapi.auth2.getAuthInstance().isSignedIn.listen(atualizarStatusDrive);
+    });
+  });
+}
+
+function onSignIn() { atualizarStatusDrive(); }
+
+function atualizarStatusDrive() {
+  const el = document.getElementById('driveStatus');
+  if (!gapiInited) { el.textContent = 'Carregando...'; return; }
+  const signedIn = gapi.auth2.getAuthInstance().isSignedIn.get();
+  el.textContent = signedIn ? 'Conectado ao Google Drive' : 'Clique para conectar';
+  el.style.color = signedIn ? '#28a745' : '#dc3545';
+}
+
+async function exportarParaDrive() {
+  if (!gapiInited || !gapi.auth2.getAuthInstance().isSignedIn.get()) return alert('Faça login no Google!');
+  const dados = { version: 'v9', timestamp: new Date().toISOString(), historico };
+  const content = JSON.stringify(dados, null, 2);
+  const fileName = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
+
+  const boundary = '-------314159265358979323846';
+  const delimiter = "\r\n--" + boundary + "\r\n";
+  const close_delim = "\r\n--" + boundary + "--";
+
+  const metadata = { name: fileName, mimeType: 'application/json', parents: ['appDataFolder'] };
+  const body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter +
+               'Content-Type: application/json\r\n\r\n' + content + close_delim;
+
+  const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'multipart/related; boundary=' + boundary },
+    body: body
+  });
+
+  if (response.ok) alert('Backup salvo no Drive!');
+  else alert('Erro ao salvar.');
+}
+
+async function listarBackupsDrive() {
+  if (!gapiInited || !gapi.auth2.getAuthInstance().isSignedIn.get()) return alert('Faça login no Google!');
+  const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+  const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fjson%27%20and%20%27appDataFolder%27%20in%20parents&spaces=appDataFolder', {
+    headers: { 'Authorization': 'Bearer ' + accessToken }
+  });
+  const data = await response.json();
+
+  if (!data.files || data.files.length === 0) return alert('Nenhum backup encontrado.');
+
+  let msg = 'Backups no Drive:\n\n';
+  data.files.forEach(f => msg += `• ${f.name} (ID: ${f.id})\n`);
+  msg += '\nDigite o ID:';
+
+  const id = prompt(msg);
+  if (id && data.files.find(f => f.id === id)) {
+    const fileResp = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, {
+      headers: { 'Authorization': 'Bearer ' + accessToken }
+    });
+    const dados = await fileResp.json();
+    if (confirm(`Importar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
+      historico = dados.historico;
+      salvar();
+      alert('Backup importado!');
+    }
+  } else {
+    alert('ID inválido.');
+  }
+}
+
+// === BACKUP JSON LOCAL ===
+function exportarBackup() {
+  const dados = { version: 'v9', timestamp: new Date().toISOString(), historico };
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const dados = JSON.parse(ev.target.result);
+      if (confirm(`Importar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
+        historico = dados.historico;
+        salvar();
+        alert('Backup importado!');
+      }
+    } catch { alert('Arquivo inválido.'); }
+  };
+  reader.readAsText(file);
 }
 
 // === INICIALIZAÇÃO ===
-atualizarTudo();
-
-// Adicionar Pomodoro Section se não existir
-if (!document.getElementById('pomodoroSection')) {
-  document.querySelector('.controls').insertAdjacentHTML('afterend', `
-    <div class="pomodoro" id="pomodoroSection">
-      <h3>Pomodoro Ativo</h3>
-      <div id="timer">25:00</div>
-      <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
-      <button class="btn-warning" onclick="pausaPomodoro()">Pausar</button>
-      <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
-    </div>
-  `);
-}
+window.onload = () => {
+  handleClientLoad();
+  atualizarTudo();
+};
 </script>
 
 </body>
