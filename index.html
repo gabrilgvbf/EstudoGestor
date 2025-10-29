@@ -557,7 +557,7 @@ function fecharModal() {
 function gerarCiclo() {
   const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
   const agora = new Date();
-  const umDiaAtras = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+  const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000); // <<< 7 DIAS
 
   cicloAtual = [];
 
@@ -570,7 +570,7 @@ function gerarCiclo() {
 
       if (!h.fim) {
         cicloAtual.push({ ...topicoObj, tipo: 'Estudo', urgencia: 3 });
-      } else if (new Date(h.fim) <= umDiaAtras) {
+      } else if (new Date(h.fim) <= seteDiasAtras) { // <<< AQUI TAMBÉM
         cicloAtual.push({ ...topicoObj, tipo: 'Revisão', urgencia: 2 });
       }
     }
