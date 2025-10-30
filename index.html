@@ -1,119 +1,717 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Estudo BB - Login</title>
-  <script type="module">
-    // Importa Firebase SDKs diretamente via CDN
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } 
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-    // Configuração do Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBxNiw-EW4-URuu_7EZk4N4k_lJ3wuzUzM",
-      authDomain: "estudobb-c7f2c.firebaseapp.com",
-      projectId: "estudobb-c7f2c",
-      storageBucket: "estudobb-c7f2c.firebasestorage.app",
-      messagingSenderId: "565017924427",
-      appId: "1:565017924427:web:53e4c111b32b4fb0210ece"
-    };
-
-    // Inicializa o Firebase e Autenticação
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // Referências aos elementos HTML
-    const loginDiv = document.getElementById("login");
-    const appDiv = document.getElementById("app");
-    const userName = document.getElementById("userName");
-    const userPhoto = document.getElementById("userPhoto");
-
-    // Função de Login
-    window.loginGoogle = async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        console.log("Usuário logado:", user.displayName);
-      } catch (error) {
-        console.error("Erro no login:", error);
-      }
-    };
-
-    // Função de Logout
-    window.logout = async () => {
-      await signOut(auth);
-    };
-
-    // Monitora o estado da autenticação
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loginDiv.style.display = "none";
-        appDiv.style.display = "block";
-        userName.textContent = user.displayName;
-        userPhoto.src = user.photoURL;
-      } else {
-        loginDiv.style.display = "flex";
-        appDiv.style.display = "none";
-      }
-    });
-  </script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BB Agente TI - Plano de Estudos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
   <style>
+    :root {
+      --azul-bb: #004aad;
+      --verde: #28a745;
+      --amarelo: #ffc107;
+      --vermelho: #dc3545;
+      --cinza: #6c757d;
+      --fundo: #f8f9fa;
+      --card: #ffffff;
+      --borda: #dee2e6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f4f7;
-      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--fundo);
+      color: #212529;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container { max-width: 1100px; margin: auto; }
+
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, var(--azul-bb), #003d82);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 20px rgba(0, 77, 173, 0.2);
+    }
+
+    header h1 { font-size: 2rem; margin-bottom: 8px; }
+    header p { opacity: 0.9; font-size: 1.1rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+      border: 1px solid var(--borda);
+    }
+
+    .stat-card h3 { font-size: 0.9rem; color: var(--cinza); margin-bottom: 8px; }
+    .stat-card p { font-size: 1.5rem; font-weight: 600; color: var(--azul-bb); }
+
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; align-items: center;
+    }
+
+    button, select {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    select { background: white; border: 1px solid var(--borda); color: #333; }
+    .btn-primary { background: var(--azul-bb); color: white; }
+    .btn-success { background: var(--verde); color: white; }
+    .btn-warning { background: var(--amarelo); color: #212529; }
+    .btn-danger { background: var(--vermelho); color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+    .ciclo-ativo {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 2px solid var(--azul-bb);
+      display: none;
+    }
+
+    .ciclo-timer {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      color: var(--azul-bb);
+      margin: 15px 0;
+    }
+
+    .ciclo-progress {
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .ciclo-progress-fill {
+      height: 100%;
+      background: var(--verde);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .ciclo-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .materia {
+      background: var(--card);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid var(--borda);
+    }
+
+    .materia-header {
+      background: var(--azul-bb);
+      color: white;
+      padding: 16px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
+    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
+
+    .materia-content {
       padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+
+    .materia-content.open {
+      padding: 16px 20px;
+      max-height: 1000px;
+    }
+
+    .topico-item {
       display: flex;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 12px 0;
+      border-bottom: 1px dashed #e9ecef;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    #login {
-      flex-direction: column;
-      text-align: center;
+
+    .topico-item:last-child { border-bottom: none; }
+
+    .topico-text { flex: 1; font-size: 0.95rem; }
+
+    .topico-actions { display: flex; gap: 6px; }
+
+    .btn-small {
+      padding: 6px 10px;
+      font-size: 0.8rem;
     }
-    button {
-      background-color: #4285F4;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
+
+    .status {
+      width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
+      border: 2px solid #ccc;
     }
-    #app {
-      display: none;
-      text-align: center;
-    }
-    #userPhoto {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
+
+    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
+    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
+    .status.concluido { background: #d4edda; border-color: var(--verde); }
+
+    .historico table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .historico th, .historico td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--borda);
+    }
+
+    .historico th { background: var(--azul-bb); color: white; }
+    .concluido { background: #d4edda; }
+    .andamento { background: #fff3cd; }
+
+    .btn-delete {
+      background: var(--vermelho);
+      color: white;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
+
+    .sync-status {
+      text-align: center;
+      margin: 15px 0;
+      font-weight: 500;
+      color: var(--cinza);
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 1.6rem; }
+      .topico-item { flex-direction: column; align-items: flex-start; }
+      .topico-actions { width: 100%; justify-content: flex-end; }
     }
   </style>
 </head>
-
 <body>
-  <!-- Tela de Login -->
-  <div id="login" style="display: flex;">
-    <h2>Bem-vindo ao Estudo BB 👋</h2>
-    <p>Faça login com sua conta Google para continuar</p>
-    <button onclick="loginGoogle()">Entrar com Google</button>
+
+<div class="container">
+  <header>
+    <h1>Plano de Estudos BB - Agente TI</h1>
+    <p>Concurso 2025/2026 | Sincronizado com Firebase</p>
+  </header>
+
+  <div class="sync-status" id="syncStatus">Conectando ao Firebase...</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Tempo Hoje</h3>
+      <p><span id="tempoHoje">0</span> min</p>
+    </div>
+    <div class="stat-card">
+      <h3>Tempo Semana</h3>
+      <p><span id="tempoSemana">0</span> min</p>
+    </div>
+    <div class="stat-card">
+      <h3>Tópicos Concluídos</h3>
+      <p><span id="topicosConcluidos">0</span></p>
+    </div>
+    <div class="stat-card">
+      <h3>Progresso Geral</h3>
+      <p><span id="progressoGeral">0</span>%</p>
+    </div>
   </div>
 
-  <!-- Aplicação -->
-  <div id="app" style="display: none;">
-    <h2>Olá, <span id="userName"></span>!</h2>
-    <img id="userPhoto" alt="Foto do usuário" />
-    <p>Você está logado ✅</p>
-    <button onclick="logout()">Sair</button>
-    <hr>
-    <p><i>Aqui virá seu painel de estudos e controle de ciclos 📘</i></p>
+  <div class="controls">
+    <select id="cicloTempo">
+      <option value="15">15 min</option>
+      <option value="30" selected>30 min</option>
+      <option value="60">60 min</option>
+      <option value="90">90 min</option>
+      <option value="180">180 min</option>
+    </select>
+    <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
+    <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
+    <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
+    <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
   </div>
+
+  <div class="ciclo-ativo" id="cicloAtivo">
+    <h3 id="cicloTitulo">Ciclo Iniciado</h3>
+    <div class="ciclo-timer" id="timerCiclo">00:00</div>
+    <div class="ciclo-progress"><div class="ciclo-progress-fill" id="progressFill"></div></div>
+    <div class="ciclo-info">
+      <span>Tópico: <strong id="topicoAtual">-</strong></span>
+      <span>Progresso: <strong id="progressoTexto">0%</strong></span>
+    </div>
+    <div style="text-align:center; margin-top:15px;">
+      <button class="btn-warning" onclick="pausarCiclo()">Pausar</button>
+      <button class="btn-success" onclick="proximoTopico()" id="btnProximo" style="display:none;">Próximo</button>
+      <button class="btn-danger" onclick="pararCiclo()">Parar Ciclo</button>
+    </div>
+  </div>
+
+  <div id="materias"></div>
+
+  <div class="historico">
+    <h2>Histórico de Estudo</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaHistorico"></tbody>
+    </table>
+  </div>
+
+  <div class="modal" id="notaModal">
+    <div class="modal-content">
+      <h3>Notas do Tópico</h3>
+      <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
+      <div style="text-align:right; margin-top:10px;">
+        <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
+    <h3>Pomodoro</h3>
+    <div id="timer">25:00</div>
+    <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
+    <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
+    <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
+  </div>
+</div>
+
+<script>
+// === CONFIGURAÇÃO FIREBASE ===
+const firebaseConfig = {
+  apiKey: "AIzaSyBxNiw-EW4-URuu_7EZk4N4k_lJ3wuzUzM",
+  authDomain: "estudobb-c7f2c.firebaseapp.com",
+  projectId: "estudobb-c7f2c",
+  storageBucket: "estudobb-c7f2c.firebasestorage.app",
+  messagingSenderId: "565017924427",
+  appId: "1:565017924427:web:53e4c111b32b4fb0210ece",
+  databaseURL: "https://estudobb-c7f2c-default-rtdb.firebaseio.com"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const historicoRef = db.ref('historico');
+
+// === DADOS ===
+const materias = [
+  {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
+  {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicas'],peso:1},
+  {nome:'MATEMÁTICA',topicos:['Números inteiros, racionais e reais','Sistema legal de medidas','Razões e proporções','Lógica proposicional','Noções de conjuntos','Relações e funções','Matrizes','Determinantes','Sistemas lineares','Sequências','Progressões aritméticas e geométricas'],peso:2},
+  {nome:'ATUALIDADES DO MERCADO FINANCEIRO',topicos:['Bancos na Era Digital','Internet banking e Mobile banking','Open banking','Fintechs, startups e big techs','Shadow banking','Blockchain e criptomoedas','PIX e arranjos de pagamento','Transformação digital no sistema financeiro'],peso:1},
+  {nome:'PROBABILIDADE E ESTATÍSTICA',topicos:['Representação tabular e gráfica','Medidas de tendência central e dispersão','Variáveis aleatórias e distribuições','Teorema de Bayes e probabilidade condicional','Distribuição binomial e normal','Noções de amostragem e inferência estatística'],peso:1},
+  {nome:'CONHECIMENTOS BANCÁRIOS',topicos:['Sistema Financeiro Nacional','Mercado financeiro','Política monetária e SELIC','Orçamento público e dívida pública','Produtos bancários','Mercado de câmbio','Taxas de juros e curva de juros','Lavagem de dinheiro e LGPD','Segurança cibernética e responsabilidade socioambiental'],peso:2},
+  {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
+];
+
+let historico = [];
+let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
+let pomodoroTime = 25 * 60, timerInterval = null;
+
+// === SALVAR E ATUALIZAR ===
+function salvar() {
+  localStorage.setItem('bb-historico-v12', JSON.stringify(historico));
+  historicoRef.set(historico).then(() => {
+    atualizarStatusSync('Sincronizado');
+  }).catch(err => {
+    console.error('Erro ao salvar no Firebase:', err);
+    atualizarStatusSync('Erro ao sincronizar');
+  });
+  atualizarTudo();
+}
+
+function atualizarTudo() {
+  atualizarTabela();
+  atualizarEstatisticas();
+  renderizarMaterias();
+}
+
+// === CARREGAR DO FIREBASE ===
+historicoRef.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data && Array.isArray(data)) {
+    historico = data;
+    localStorage.setItem('bb-historico-v12', JSON.stringify(historico));
+    atualizarTudo();
+    atualizarStatusSync('Sincronizado');
+  } else {
+    // Primeiro uso
+    historico = JSON.parse(localStorage.getItem('bb-historico-v12')) || [];
+    salvar();
+  }
+}, (error) => {
+  console.error('Erro Firebase:', error);
+  atualizarStatusSync('Offline');
+  historico = JSON.parse(localStorage.getItem('bb-historico-v12')) || [];
+  atualizarTudo();
+});
+
+function atualizarStatusSync(texto) {
+  const el = document.getElementById('syncStatus');
+  el.textContent = texto;
+  el.style.color = texto.includes('Erro') ? 'red' : texto.includes('Offline') ? 'orange' : 'green';
+}
+
+// === FUNÇÕES PRINCIPAIS ===
+function atualizarTabela() {
+  const tbody = document.getElementById('tabelaHistorico');
+  tbody.innerHTML = '';
+  historico.forEach((h, i) => {
+    const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
+    const tr = document.createElement('tr');
+    tr.className = h.status === 'Concluído' ? 'concluido' : h.status === 'Em andamento' ? 'andamento' : '';
+    tr.innerHTML = `
+      <td>${h.materia}</td>
+      <td>${h.topico}</td>
+      <td>${formatarHora(h.inicio)}</td>
+      <td>${h.fim ? formatarHora(h.fim) : '-'}</td>
+      <td>${duracao}</td>
+      <td>${h.status}</td>
+      <td><button class="btn-delete" onclick="excluirRegistro(${i})">Excluir</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function excluirRegistro(i) {
+  if (confirm('Excluir este registro?')) {
+    historico.splice(i, 1);
+    salvar();
+  }
+}
+
+function atualizarEstatisticas() {
+  const hoje = new Date().toISOString().slice(0,10);
+  let tempoHoje = 0, tempoSemana = 0, concluidos = 0, totalPesoConcluido = 0, totalPeso = 0;
+
+  const inicioSemana = new Date();
+  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1);
+  inicioSemana.setHours(0,0,0,0);
+
+  materias.forEach(m => totalPeso += m.peso * m.topicos.length);
+
+  historico.forEach(h => {
+    if (h.fim) {
+      const inicio = new Date(h.inicio);
+      const fim = new Date(h.fim);
+      const mins = Math.round((fim - inicio) / 60000);
+      if (h.inicio.slice(0,10) === hoje) tempoHoje += mins;
+      if (inicio >= inicioSemana) tempoSemana += mins;
+      if (h.status === 'Concluído') {
+        concluidos++;
+        const materia = materias.find(m => m.nome === h.materia);
+        if (materia) totalPesoConcluido += materia.peso;
+      }
+    }
+  });
+
+  const progresso = totalPeso > 0 ? Math.round((totalPesoConcluido / totalPeso) * 100) : 0;
+
+  document.getElementById('tempoHoje').textContent = tempoHoje;
+  document.getElementById('tempoSemana').textContent = tempoSemana;
+  document.getElementById('topicosConcluidos').textContent = concluidos;
+  document.getElementById('progressoGeral').textContent = progresso;
+}
+
+function renderizarMaterias() {
+  const container = document.getElementById('materias');
+  container.innerHTML = '';
+  materias.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'materia';
+    const concluidos = m.topicos.filter(t => historico.some(h => h.materia === m.nome && h.topico === t && h.status === 'Concluído')).length;
+    div.innerHTML = `
+      <div class="materia-header" onclick="toggleMateria(this)">
+        <div>${m.nome} <span class="peso">(Peso: ${m.peso})</span> <small style="opacity:0.8;">${concluidos}/${m.topicos.length}</small></div>
+        <span class="arrow">Down Arrow</span>
+      </div>
+      <div class="materia-content">
+        ${m.topicos.map(t => {
+          const reg = historico.find(h => h.materia === m.nome && h.topico === t);
+          const status = reg?.status || 'Pendente';
+          const statusClass = status === 'Concluído' ? 'concluido' : status === 'Em andamento' ? 'andamento' : 'pendente';
+          return `
+            <div class="topico-item">
+              <div class="status ${statusClass}"></div>
+              <div class="topico-text">${t}</div>
+              <div class="topico-actions">
+                ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t.replace(/'/g, "\\'")}')">Iniciar</button>` : ''}
+                ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t.replace(/'/g, "\\'")}')">Finalizar</button>` : ''}
+                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t.replace(/'/g, "\\'")}','${(reg?.nota||'').replace(/'/g, "\\'")}')">Note</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function toggleMateria(header) {
+  const content = header.nextElementSibling;
+  const arrow = header.querySelector('.arrow');
+  content.classList.toggle('open');
+  arrow.textContent = content.classList.contains('open') ? 'Up Arrow' : 'Down Arrow';
+}
+
+function iniciar(materia, topico) {
+  if (historico.some(h => h.materia === materia && h.topico === topico && !h.fim)) return alert('Já em andamento!');
+  historico.push({ materia, topico, inicio: new Date().toISOString(), fim: null, status: 'Em andamento', nota: '' });
+  salvar();
+}
+
+function finalizar(materia, topico) {
+  const reg = historico.find(h => h.materia === materia && h.topico === topico && !h.fim);
+  if (!reg) return alert('Não iniciado!');
+  reg.fim = new Date().toISOString();
+  reg.status = 'Concluído';
+  salvar();
+}
+
+function resetarProgresso() {
+  if (confirm('Resetar todo o progresso?')) {
+    historico = historico.map(h => ({ ...h, inicio: null, fim: null, status: 'Pendente', nota: '' }));
+    salvar();
+  }
+}
+
+let notaAtual = {};
+function abrirNota(materia, topico, nota) {
+  notaAtual = { materia, topico };
+  document.getElementById('notaText').value = nota;
+  document.getElementById('notaModal').style.display = 'flex';
+}
+
+function salvarNota() {
+  const nota = document.getElementById('notaText').value;
+  const reg = historico.find(h => h.materia === notaAtual.materia && h.topico === notaAtual.topico);
+  if (reg) reg.nota = nota;
+  salvar();
+  fecharModal();
+}
+
+function fecharModal() {
+  document.getElementById('notaModal').style.display = 'none';
+}
+
+// === CICLO, POMODORO, UTILS ===
+function gerarCiclo() {
+  const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
+  const agora = new Date();
+  const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  cicloAtual = [];
+
+  historico.forEach(h => {
+    if (h.inicio) {
+      const materia = materias.find(m => m.nome === h.materia);
+      if (!materia) return;
+      const item = { materia: h.materia, topico: h.topico, peso: materia.peso };
+      if (!h.fim) cicloAtual.push({ ...item, tipo: 'Estudo', urgencia: 3 });
+      else if (new Date(h.fim) <= seteDiasAtras) cicloAtual.push({ ...item, tipo: 'Revisão', urgencia: 2 });
+    }
+  });
+
+  if (cicloAtual.length === 0) return alert('Nenhum tópico iniciado!');
+
+  cicloAtual.sort((a, b) => b.urgencia - a.urgencia || b.peso - a.peso);
+  const total = cicloAtual.reduce((s, i) => s + i.peso * i.urgencia, 0);
+  cicloAtual.forEach(item => {
+    const prop = (item.peso * item.urgencia) / total;
+    item.minutos = Math.max(3, Math.round(prop * tempoTotal));
+  });
+
+  iniciarCiclo();
+}
+
+function iniciarCiclo() {
+  indiceAtual = 0;
+  document.getElementById('cicloAtivo').style.display = 'block';
+  document.getElementById('btnProximo').style.display = 'none';
+  atualizarCicloUI();
+  iniciarTimerTopico();
+}
+
+function iniciarTimerTopico() {
+  if (indiceAtual >= cicloAtual.length) return finalizarCiclo();
+  const item = cicloAtual[indiceAtual];
+  tempoRestante = item.minutos * 60;
+
+  timerCiclo = setInterval(() => {
+    if (!cicloPausado && tempoRestante > 0) {
+      tempoRestante--;
+      atualizarTimerDisplay();
+      atualizarProgressoCiclo();
+    } else if (tempoRestante <= 0) {
+      clearInterval(timerCiclo);
+      notificarFimTopico();
+    }
+  }, 1000);
+}
+
+function notificarFimTopico() {
+  alert(`Tempo esgotado!\n\nTópico: ${cicloAtual[indiceAtual].topico}\n\nClique em "Próximo".`);
+  document.getElementById('btnProximo').style.display = 'inline-block';
+}
+
+function proximoTopico() {
+  indiceAtual++;
+  document.getElementById('btnProximo').style.display = 'none';
+  if (indiceAtual < cicloAtual.length) {
+    atualizarCicloUI();
+    iniciarTimerTopico();
+  } else {
+    finalizarCiclo();
+  }
+}
+
+function pausarCiclo() {
+  cicloPausado = !cicloPausado;
+  document.querySelector('#cicloAtivo .btn-warning').textContent = cicloPausado ? 'Retomar' : 'Pausar';
+}
+
+function pararCiclo() {
+  clearInterval(timerCiclo);
+  document.getElementById('cicloAtivo').style.display = 'none';
+  cicloAtual = [];
+}
+
+function finalizarCiclo() {
+  clearInterval(timerCiclo);
+  alert('Ciclo concluído!');
+  document.getElementById('cicloAtivo').style.display = 'none';
+  cicloAtual = [];
+}
+
+function atualizarCicloUI() {
+  const item = cicloAtual[indiceAtual];
+  document.getElementById('cicloTitulo').textContent = `${item.tipo}: ${item.materia}`;
+  document.getElementById('topicoAtual').textContent = `${item.topico} (${item.minutos} min)`;
+  document.getElementById('progressoTexto').textContent = `${Math.round((indiceAtual / cicloAtual.length) * 100)}%`;
+  document.getElementById('progressFill').style.width = `${(indiceAtual / cicloAtual.length) * 100}%`;
+}
+
+function atualizarTimerDisplay() {
+  const mins = String(Math.floor(tempoRestante / 60)).padStart(2, '0');
+  const secs = String(tempoRestante % 60).padStart(2, '0');
+  document.getElementById('timerCiclo').textContent = `${mins}:${secs}`;
+}
+
+function atualizarProgressoCiclo() {
+  const item = cicloAtual[indiceAtual];
+  const progTopico = ((item.minutos * 60 - tempoRestante) / (item.minutos * 60)) * 100;
+  const total = ((indiceAtual * 100 + progTopico) / cicloAtual.length);
+  document.getElementById('progressFill').style.width = `${total}%`;
+  document.getElementById('progressoTexto').textContent = `${Math.round(total)}%`;
+}
+
+function iniciarPomodoro() {
+  document.getElementById('pomodoroSection').style.display = 'block';
+  pomodoroTime = 25 * 60;
+  atualizarTimerPomodoro();
+  timerInterval = setInterval(() => {
+    if (pomodoroTime > 0) {
+      pomodoroTime--;
+      atualizarTimerPomodoro();
+    } else {
+      clearInterval(timerInterval);
+      alert('Pomodoro concluído! 5 min de pausa.');
+    }
+  }, 1000);
+}
+
+function pausarPomodoro() { clearInterval(timerInterval); }
+function pararPomodoro() {
+  clearInterval(timerInterval);
+  document.getElementById('pomodoroSection').style.display = 'none';
+}
+
+function atualizarTimerPomodoro() {
+  const mins = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
+  const secs = String(pomodoroTime % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = `${mins}:${secs}`;
+}
+
+function formatarHora(iso) {
+  return new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+}
+
+function exportarPDF() { window.print(); }
+
+// === INICIALIZAÇÃO ===
+window.onload = () => {
+  atualizarStatusSync('Conectando...');
+  // Firebase carrega automaticamente
+};
+</script>
+
 </body>
 </html>
