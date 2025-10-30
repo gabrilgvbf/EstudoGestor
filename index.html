@@ -8,6 +8,7 @@
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   
   <style>
@@ -46,197 +47,23 @@
     header h1 { font-size: 2rem; margin-bottom: 8px; }
     header p { opacity: 0.9; font-size: 1.1rem; }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    .login-screen {
       text-align: center;
-      border: 1px solid var(--borda);
-    }
-
-    .stat-card h3 { font-size: 0.9rem; color: var(--cinza); margin-bottom: 8px; }
-    .stat-card p { font-size: 1.5rem; font-weight: 600; color: var(--azul-bb); }
-
-    .controls {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; align-items: center;
-    }
-
-    button, select {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.95rem;
-    }
-
-    select { background: white; border: 1px solid var(--borda); color: #333; }
-    .btn-primary { background: var(--azul-bb); color: white; }
-    .btn-success { background: var(--verde); color: white; }
-    .btn-warning { background: var(--amarelo); color: #212529; }
-    .btn-danger { background: var(--vermelho); color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-
-    button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
-    .ciclo-ativo {
-      background: #e3f2fd;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 20px 0;
-      border: 2px solid var(--azul-bb);
-      display: none;
-    }
-
-    .ciclo-timer {
-      font-size: 2.5rem;
-      font-weight: bold;
-      text-align: center;
-      color: var(--azul-bb);
-      margin: 15px 0;
-    }
-
-    .ciclo-progress {
-      height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      overflow: hidden;
-      margin: 15px 0;
-    }
-
-    .ciclo-progress-fill {
-      height: 100%;
-      background: var(--verde);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .ciclo-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.95rem;
-      color: #555;
-    }
-
-    .materia {
-      background: var(--card);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border: 1px solid var(--borda);
-    }
-
-    .materia-header {
-      background: var(--azul-bb);
-      color: white;
-      padding: 16px 20px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
-    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
-
-    .materia-content {
-      padding: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease, padding 0.4s ease;
-    }
-
-    .materia-content.open {
-      padding: 16px 20px;
-      max-height: 1000px;
-    }
-
-    .topico-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed #e9ecef;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .topico-item:last-child { border-bottom: none; }
-
-    .topico-text { flex: 1; font-size: 0.95rem; }
-
-    .topico-actions { display: flex; gap: 6px; }
-
-    .btn-small {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-    }
-
-    .status {
-      width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
-      border: 2px solid #ccc;
-    }
-
-    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
-    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
-    .status.concluido { background: #d4edda; border-color: var(--verde); }
-
-    .historico table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-
-    .historico th, .historico td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid var(--borda);
-    }
-
-    .historico th { background: var(--azul-bb); color: white; }
-    .concluido { background: #d4edda; }
-    .andamento { background: #fff3cd; }
-
-    .btn-delete {
-      background: var(--vermelho);
-      color: white;
-      padding: 4px 8px;
-      font-size: 0.8rem;
-      border-radius: 4px;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
+      padding: 60px 20px;
       background: white;
-      padding: 25px;
-      border-radius: 12px;
-      width: 90%;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      margin: 40px auto;
       max-width: 500px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
+    .login-screen h2 { margin-bottom: 20px; color: var(--azul-bb); }
+    .login-screen p { margin-bottom: 30px; color: #555; }
+
+    .hidden { display: none !important; }
+
+    .stats-grid, .controls, .ciclo-ativo, #materias, .historico, .pomodoro { opacity: 0; transition: opacity 0.5s; }
+    .loaded { opacity: 1; }
 
     .sync-status {
       text-align: center;
@@ -244,6 +71,58 @@
       font-weight: 500;
       color: var(--cinza);
     }
+
+    /* Reutiliza os mesmos estilos do app anterior */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: var(--card); padding: 18px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; border: 1px solid var(--borda); }
+    .stat-card h3 { font-size: 0.9rem; color: var(--cinza); margin-bottom: 8px; }
+    .stat-card p { font-size: 1.5rem; font-weight: 600; color: var(--azul-bb); }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; align-items: center; }
+    button, select { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+    select { background: white; border: 1px solid var(--borda); color: #333; }
+    .btn-primary { background: var(--azul-bb); color: white; }
+    .btn-success { background: var(--verde); color: white; }
+    .btn-warning { background: var(--amarelo); color: #212529; }
+    .btn-danger { background: var(--vermelho); color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+    .ciclo-ativo { background: #e3f2fd; padding: 20px; border-radius: 12px; margin: 20px 0; border: 2px solid var(--azul-bb); display: none; }
+    .ciclo-timer { font-size: 2.5rem; font-weight: bold; text-align: center; color: var(--azul-bb); margin: 15px 0; }
+    .ciclo-progress { height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; margin: 15px 0; }
+    .ciclo-progress-fill { height: 100%; background: var(--verde); width: 0%; transition: width 0.3s ease; }
+    .ciclo-info { display: flex; justify-content: space-between; font-size: 0.95rem; color: #555; }
+
+    .materia { background: var(--card); border-radius: 12px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid var(--borda); }
+    .materia-header { background: var(--azul-bb); color: white; padding: 16px 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
+    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
+    .materia-content { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
+    .materia-content.open { padding: 16px 20px; max-height: 1000px; }
+
+    .topico-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #e9ecef; flex-wrap: wrap; gap: 10px; }
+    .topico-item:last-child { border-bottom: none; }
+    .topico-text { flex: 1; font-size: 0.95rem; }
+    .topico-actions { display: flex; gap: 6px; }
+    .btn-small { padding: 6px 10px; font-size: 0.8rem; }
+
+    .status { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; border: 2px solid #ccc; }
+    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
+    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
+    .status.concluido { background: #d4edda; border-color: var(--verde); }
+
+    .historico table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    .historico th, .historico td { padding: 10px; text-align: center; border: 1px solid var(--borda); }
+    .historico th { background: var(--azul-bb); color: white; }
+    .concluido { background: #d4edda; }
+    .andamento { background: #fff3cd; }
+
+    .btn-delete { background: var(--vermelho); color: white; padding: 4px 8px; font-size: 0.8rem; border-radius: 4px; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
 
     @media (max-width: 768px) {
       header h1 { font-size: 1.6rem; }
@@ -255,92 +134,97 @@
 <body>
 
 <div class="container">
-  <header>
-    <h1>Plano de Estudos BB - Agente TI</h1>
-    <p>Concurso 2025/2026 | Sincronizado com Firebase</p>
-  </header>
 
-  <div class="sync-status" id="syncStatus">Conectando ao Firebase...</div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h3>Tempo Hoje</h3>
-      <p><span id="tempoHoje">0</span> min</p>
-    </div>
-    <div class="stat-card">
-      <h3>Tempo Semana</h3>
-      <p><span id="tempoSemana">0</span> min</p>
-    </div>
-    <div class="stat-card">
-      <h3>Tópicos Concluídos</h3>
-      <p><span id="topicosConcluidos">0</span></p>
-    </div>
-    <div class="stat-card">
-      <h3>Progresso Geral</h3>
-      <p><span id="progressoGeral">0</span>%</p>
-    </div>
+  <!-- TELA DE LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <h2>Bem-vindo ao Plano de Estudos</h2>
+    <p>Faça login com sua conta Google para começar</p>
+    <button id="googleLoginBtn" class="btn-primary" style="padding: 14px 32px; font-size: 1.1rem;">
+      Entrar com Google
+    </button>
+    <p style="margin-top: 20px; font-size: 0.9rem; color: #888;">
+      Seus dados são salvos com segurança no Firebase
+    </p>
   </div>
 
-  <div class="controls">
-    <select id="cicloTempo">
-      <option value="15">15 min</option>
-      <option value="30" selected>30 min</option>
-      <option value="60">60 min</option>
-      <option value="90">90 min</option>
-      <option value="180">180 min</option>
-    </select>
-    <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
-    <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
-    <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
-    <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
-  </div>
+  <!-- APP (invisível até login) -->
+  <div id="app" class="hidden">
+    <header>
+      <h1>Plano de Estudos BB - Agente TI</h1>
+      <p>Concurso 2025/2026 | Sincronizado com Firebase</p>
+    </header>
 
-  <div class="ciclo-ativo" id="cicloAtivo">
-    <h3 id="cicloTitulo">Ciclo Iniciado</h3>
-    <div class="ciclo-timer" id="timerCiclo">00:00</div>
-    <div class="ciclo-progress"><div class="ciclo-progress-fill" id="progressFill"></div></div>
-    <div class="ciclo-info">
-      <span>Tópico: <strong id="topicoAtual">-</strong></span>
-      <span>Progresso: <strong id="progressoTexto">0%</strong></span>
+    <div class="sync-status" id="syncStatus">Conectando...</div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><h3>Tempo Hoje</h3><p><span id="tempoHoje">0</span> min</p></div>
+      <div class="stat-card"><h3>Tempo Semana</h3><p><span id="tempoSemana">0</span> min</p></div>
+      <div class="stat-card"><h3>Tópicos Concluídos</h3><p><span id="topicosConcluidos">0</span></p></div>
+      <div class="stat-card"><h3>Progresso Geral</h3><p><span id="progressoGeral">0</span>%</p></div>
     </div>
-    <div style="text-align:center; margin-top:15px;">
-      <button class="btn-warning" onclick="pausarCiclo()">Pausar</button>
-      <button class="btn-success" onclick="proximoTopico()" id="btnProximo" style="display:none;">Próximo</button>
-      <button class="btn-danger" onclick="pararCiclo()">Parar Ciclo</button>
+
+    <div class="controls">
+      <select id="cicloTempo">
+        <option value="15">15 min</option>
+        <option value="30" selected>30 min</option>
+        <option value="60">60 min</option>
+        <option value="90">90 min</option>
+        <option value="180">180 min</option>
+      </select>
+      <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
+      <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
+      <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
+      <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
+      <button class="btn-secondary" onclick="logout()">Sair</button>
     </div>
-  </div>
 
-  <div id="materias"></div>
-
-  <div class="historico">
-    <h2>Histórico de Estudo</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaHistorico"></tbody>
-    </table>
-  </div>
-
-  <div class="modal" id="notaModal">
-    <div class="modal-content">
-      <h3>Notas do Tópico</h3>
-      <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
-      <div style="text-align:right; margin-top:10px;">
-        <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+    <div class="ciclo-ativo" id="cicloAtivo">
+      <h3 id="cicloTitulo">Ciclo Iniciado</h3>
+      <div class="ciclo-timer" id="timerCiclo">00:00</div>
+      <div class="ciclo-progress"><div class="ciclo-progress-fill" id="progressFill"></div></div>
+      <div class="ciclo-info">
+        <span>Tópico: <strong id="topicoAtual">-</strong></span>
+        <span>Progresso: <strong id="progressoTexto">0%</strong></span>
+      </div>
+      <div style="text-align:center; margin-top:15px;">
+        <button class="btn-warning" onclick="pausarCiclo()">Pausar</button>
+        <button class="btn-success" onclick="proximoTopico()" id="btnProximo" style="display:none;">Próximo</button>
+        <button class="btn-danger" onclick="pararCiclo()">Parar Ciclo</button>
       </div>
     </div>
-  </div>
 
-  <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
-    <h3>Pomodoro</h3>
-    <div id="timer">25:00</div>
-    <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
-    <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
-    <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
+    <div id="materias"></div>
+
+    <div class="historico">
+      <h2>Histórico de Estudo</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaHistorico"></tbody>
+      </table>
+    </div>
+
+    <div class="modal" id="notaModal">
+      <div class="modal-content">
+        <h3>Notas do Tópico</h3>
+        <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
+        <div style="text-align:right; margin-top:10px;">
+          <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
+          <button class="btn-primary" onclick="salvarNota()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
+      <h3>Pomodoro</h3>
+      <div id="timer">25:00</div>
+      <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
+      <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
+      <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
+    </div>
   </div>
 </div>
 
@@ -357,8 +241,8 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.database();
-const historicoRef = db.ref('historico');
 
 // === DADOS ===
 const materias = [
@@ -371,55 +255,78 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = [];
+let historico = [], user = null, historicoRef = null;
 let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
 let pomodoroTime = 25 * 60, timerInterval = null;
 
-// === SALVAR E ATUALIZAR ===
-function salvar() {
-  localStorage.setItem('bb-historico-v12', JSON.stringify(historico));
-  historicoRef.set(historico).then(() => {
-    atualizarStatusSync('Sincronizado');
-  }).catch(err => {
-    console.error('Erro ao salvar no Firebase:', err);
-    atualizarStatusSync('Erro ao sincronizar');
-  });
-  atualizarTudo();
-}
+// === LOGIN COM GOOGLE ===
+document.getElementById('googleLoginBtn').onclick = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope('email');
+  auth.signInWithPopup(provider);
+};
 
-function atualizarTudo() {
-  atualizarTabela();
-  atualizarEstatisticas();
-  renderizarMaterias();
-}
+// === AUTH STATE ===
+auth.onAuthStateChanged((u) => {
+  if (u) {
+    user = u;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('app').classList.add('loaded');
 
-// === CARREGAR DO FIREBASE ===
-historicoRef.on('value', (snapshot) => {
-  const data = snapshot.val();
-  if (data && Array.isArray(data)) {
-    historico = data;
-    localStorage.setItem('bb-historico-v12', JSON.stringify(historico));
-    atualizarTudo();
-    atualizarStatusSync('Sincronizado');
+    // Referência ao histórico do usuário
+    historicoRef = db.ref('users/' + user.uid + '/historico');
+    carregarDadosUsuario();
   } else {
-    // Primeiro uso
-    historico = JSON.parse(localStorage.getItem('bb-historico-v12')) || [];
-    salvar();
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
   }
-}, (error) => {
-  console.error('Erro Firebase:', error);
-  atualizarStatusSync('Offline');
-  historico = JSON.parse(localStorage.getItem('bb-historico-v12')) || [];
-  atualizarTudo();
 });
 
+function logout() {
+  auth.signOut();
+}
+
+// === CARREGAR E SINCRONIZAR DADOS ===
+function carregarDadosUsuario() {
+  atualizarStatusSync('Carregando...');
+
+  historicoRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    historico = data ? Object.values(data) : [];
+    localStorage.setItem('bb-historico-v13', JSON.stringify(historico));
+    atualizarTudo();
+    atualizarStatusSync('Sincronizado');
+  }, (error) => {
+    console.error('Erro Firebase:', error);
+    atualizarStatusSync('Offline');
+    historico = JSON.parse(localStorage.getItem('bb-historico-v13')) || [];
+    atualizarTudo();
+  });
+}
+
+function salvar() {
+  if (!user || !historicoRef) return;
+  const obj = {};
+  historico.forEach((h, i) => obj[i] = h);
+  historicoRef.set(obj).catch(err => {
+    console.error('Erro ao salvar:', err);
+    atualizarStatusSync('Erro ao salvar');
+  });
+  localStorage.setItem('bb-historico-v13', JSON.stringify(historico));
+}
+
+// === FUNÇÕES DO APP (igual ao anterior) ===
+function atualizarTudo() { atualizarTabela(); atualizarEstatisticas(); renderizarMaterias(); }
 function atualizarStatusSync(texto) {
   const el = document.getElementById('syncStatus');
-  el.textContent = texto;
+  el.textContent = `Usuário: ${user?.displayName?.split(' ')[0] || 'Você'} | ${texto}`;
   el.style.color = texto.includes('Erro') ? 'red' : texto.includes('Offline') ? 'orange' : 'green';
 }
 
-// === FUNÇÕES PRINCIPAIS ===
+// ... [TODAS AS FUNÇÕES: atualizarTabela, iniciar, finalizar, gerarCiclo, etc.]
+// (Mesmas do código anterior — copie e cole aqui)
+
 function atualizarTabela() {
   const tbody = document.getElementById('tabelaHistorico');
   tbody.innerHTML = '';
@@ -562,7 +469,7 @@ function fecharModal() {
   document.getElementById('notaModal').style.display = 'none';
 }
 
-// === CICLO, POMODORO, UTILS ===
+// === CICLO, POMODORO, UTILS (igual ao anterior) ===
 function gerarCiclo() {
   const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
   const agora = new Date();
@@ -689,10 +596,7 @@ function iniciarPomodoro() {
 }
 
 function pausarPomodoro() { clearInterval(timerInterval); }
-function pararPomodoro() {
-  clearInterval(timerInterval);
-  document.getElementById('pomodoroSection').style.display = 'none';
-}
+function pararPomodoro() { clearInterval(timerInterval); document.getElementById('pomodoroSection').style.display = 'none'; }
 
 function atualizarTimerPomodoro() {
   const mins = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
@@ -708,8 +612,7 @@ function exportarPDF() { window.print(); }
 
 // === INICIALIZAÇÃO ===
 window.onload = () => {
-  atualizarStatusSync('Conectando...');
-  // Firebase carrega automaticamente
+  // Nada até login
 };
 </script>
 
