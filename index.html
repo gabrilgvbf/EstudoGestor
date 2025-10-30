@@ -16,13 +16,12 @@
     body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #333; padding: 15px; line-height: 1.5; }
     .container { max-width: 1000px; margin: auto; }
     
-    /* LOGIN */
     #loginScreen { text-align: center; padding: 50px 20px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 30px auto; max-width: 400px; }
     #loginScreen h2 { color: #004aad; margin-bottom: 15px; }
     #loginScreen button { background: #004aad; color: white; border: none; padding: 14px 30px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
     #loginScreen button:hover { background: #003a8c; }
+    #loginScreen button:disabled { background: #ccc; cursor: not-allowed; }
 
-    /* APP */
     #app { display: none; }
     header { background: #004aad; color: white; padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 20px; }
     header h1 { font-size: 1.6rem; }
@@ -86,6 +85,7 @@
     <h2>Plano de Estudos BB</h2>
     <p>Faça login com Google para começar</p>
     <button id="googleLoginBtn">Entrar com Google</button>
+    <p id="loginStatus" style="margin-top:15px; color:#dc3545; font-size:0.9rem; display:none;">Redirecionando...</p>
   </div>
 
   <!-- APP -->
@@ -163,10 +163,10 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// === DADOS ===
+// === TODAS AS MATÉRIAS E TÓPICOS ===
 const materias = [
   {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
-  {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicos'],peso:1},
+  {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicas'],peso:1},
   {nome:'MATEMÁTICA',topicos:['Números inteiros, racionais e reais','Sistema legal de medidas','Razões e proporções','Lógica proposicional','Noções de conjuntos','Relações e funções','Matrizes','Determinantes','Sistemas lineares','Sequências','Progressões aritméticas e geométricas'],peso:2},
   {nome:'ATUALIDADES DO MERCADO FINANCEIRO',topicos:['Bancos na Era Digital','Internet banking e Mobile banking','Open banking','Fintechs, startups e big techs','Shadow banking','Blockchain e criptomoedas','PIX e arranjos de pagamento','Transformação digital no sistema financeiro'],peso:1},
   {nome:'PROBABILIDADE E ESTATÍSTICA',topicos:['Representação tabular e gráfica','Medidas de tendência central e dispersão','Variáveis aleatórias e distribuições','Teorema de Bayes e probabilidade condicional','Distribuição binomial e normal','Noções de amostragem e inferência estatística'],peso:1},
@@ -174,14 +174,33 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
+// === VARIÁVEIS GLOBAIS ===
 let historico = [], user = null, ref = null;
 let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
 
-// === LOGIN ===
+// === LOGIN COM REDIRECT (SEM ERRO!) ===
 document.getElementById('googleLoginBtn').onclick = () => {
+  const btn = document.getElementById('googleLoginBtn');
+  const status = document.getElementById('loginStatus');
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.textContent = 'Redirecionando...';
+
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
+  auth.signInWithRedirect(provider);
 };
+
+auth.getRedirectResult()
+  .then(result => {
+    if (result.user) {
+      // Login OK
+    }
+  })
+  .catch(error => {
+    console.error('Erro redirect:', error);
+    document.getElementById('loginStatus').textContent = 'Erro. Tente novamente.';
+    document.getElementById('googleLoginBtn').disabled = false;
+  });
 
 auth.onAuthStateChanged(u => {
   if (u) {
@@ -193,12 +212,14 @@ auth.onAuthStateChanged(u => {
   } else {
     document.getElementById('loginScreen').style.display = 'block';
     document.getElementById('app').style.display = 'none';
+    document.getElementById('googleLoginBtn').disabled = false;
+    document.getElementById('loginStatus').style.display = 'none';
   }
 });
 
 function logout() { auth.signOut(); }
 
-// === SYNC ===
+// === SYNC COM FIREBASE ===
 function carregar() {
   ref.on('value', snap => {
     const data = snap.val();
@@ -207,7 +228,7 @@ function carregar() {
     atualizar();
     status('Sincronizado');
   }, () => {
-    historico = JSON.parse(localStorage.getItem('bb-v14') || '[]');
+    historico = JSON.parse(localStorage.getItem('bb-v15') || '[]');
     atualizar();
     status('Offline');
   });
@@ -222,7 +243,7 @@ function salvar() {
 }
 
 function salvarLocal() {
-  localStorage.setItem('bb-v14', JSON.stringify(historico));
+  localStorage.setItem('bb-v15', JSON.stringify(historico));
 }
 
 function status(txt) {
@@ -231,7 +252,7 @@ function status(txt) {
   el.style.color = txt.includes('Erro') ? 'red' : txt.includes('Offline') ? 'orange' : 'green';
 }
 
-// === UI ===
+// === UI E FUNÇÕES ===
 function atualizar() {
   atualizarTabela();
   atualizarEstatisticas();
