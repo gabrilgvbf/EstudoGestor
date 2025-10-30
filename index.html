@@ -1,370 +1,111 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BB Agente TI - Plano de Estudos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Google APIs -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
-  <style>
-    :root {
-      --azul-bb: #004aad;
-      --verde: #28a745;
-      --amarelo: #ffc107;
-      --vermelho: #dc3545;
-      --cinza: #6c757d;
-      --fundo: #f8f9fa;
-      --card: #ffffff;
-      --borda: #dee2e6;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--fundo);
-      color: #212529;
-      line-height: 1.6;
-      padding: 20px;
-    }
-
-    .container { max-width: 1100px; margin: auto; }
-
-    header {
-      text-align: center;
-      padding: 30px 20px;
-      background: linear-gradient(135deg, var(--azul-bb), #003d82);
-      color: white;
-      border-radius: 16px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 20px rgba(0, 77, 173, 0.2);
-    }
-
-    header h1 { font-size: 2rem; margin-bottom: 8px; }
-    header p { opacity: 0.9; font-size: 1.1rem; }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      text-align: center;
-      border: 1px solid var(--borda);
-    }
-
-    .stat-card h3 { font-size: 0.9rem; color: var(--cinza); margin-bottom: 8px; }
-    .stat-card p { font-size: 1.5rem; font-weight: 600; color: var(--azul-bb); }
-
-    .controls {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; align-items: center;
-    }
-
-    button, select {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.95rem;
-    }
-
-    select { background: white; border: 1px solid var(--borda); color: #333; }
-    .btn-primary { background: var(--azul-bb); color: white; }
-    .btn-success { background: var(--verde); color: white; }
-    .btn-warning { background: var(--amarelo); color: #212529; }
-    .btn-danger { background: var(--vermelho); color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-
-    button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-
-    .ciclo-ativo {
-      background: #e3f2fd;
-      padding: 20px;
-      border-radius: 12px;
-      margin: 20px 0;
-      border: 2px solid var(--azul-bb);
-      display: none;
-    }
-
-    .ciclo-timer {
-      font-size: 2.5rem;
-      font-weight: bold;
-      text-align: center;
-      color: var(--azul-bb);
-      margin: 15px 0;
-    }
-
-    .ciclo-progress {
-      height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      overflow: hidden;
-      margin: 15px 0;
-    }
-
-    .ciclo-progress-fill {
-      height: 100%;
-      background: var(--verde);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    .ciclo-info {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.95rem;
-      color: #555;
-    }
-
-    .materia {
-      background: var(--card);
-      border-radius: 12px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      border: 1px solid var(--borda);
-    }
-
-    .materia-header {
-      background: var(--azul-bb);
-      color: white;
-      padding: 16px 20px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .materia-header .peso { font-size: 0.9rem; opacity: 0.9; }
-    .materia-header .arrow { font-size: 1.3rem; transition: transform 0.2s; }
-
-    .materia-content {
-      padding: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease, padding 0.4s ease;
-    }
-
-    .materia-content.open {
-      padding: 16px 20px;
-      max-height: 1000px;
-    }
-
-    .topico-item {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed #e9ecef;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .topico-item:last-child { border-bottom: none; }
-
-    .topico-text { flex: 1; font-size: 0.95rem; }
-
-    .topico-actions { display: flex; gap: 6px; }
-
-    .btn-small {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-    }
-
-    .status {
-      width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;
-      border: 2px solid #ccc;
-    }
-
-    .status.pendente { background: #f8d7da; border-color: var(--vermelho); }
-    .status.andamento { background: #fff3cd; border-color: var(--amarelo); }
-    .status.concluido { background: #d4edda; border-color: var(--verde); }
-
-    .historico table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-
-    .historico th, .historico td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid var(--borda);
-    }
-
-    .historico th { background: var(--azul-bb); color: white; }
-    .concluido { background: #d4edda; }
-    .andamento { background: #fff3cd; }
-
-    .btn-delete {
-      background: var(--vermelho);
-      color: white;
-      padding: 4px 8px;
-      font-size: 0.8rem;
-      border-radius: 4px;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid var(--borda); border-radius: 8px; margin: 10px 0; }
-
-    .drive-status { text-align: center; margin: 15px 0; font-weight: 500; }
-
-    @media (max-width: 768px) {
-      header h1 { font-size: 1.6rem; }
-      .topico-item { flex-direction: column; align-items: flex-start; }
-      .topico-actions { width: 100%; justify-content: flex-end; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>BB Agente TI — Painel Final</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --azul:#004aad;--verde:#28a745;--amarelo:#ffc107;--vermelho:#dc3545;--bg:#f8f9fa;
+    --card:#fff;--borda:#e6eef8;
+  }
+  *{box-sizing:border-box}body{font-family:Inter,system-ui,Arial;margin:0;background:var(--bg);color:#222;padding:18px}
+  .container{max-width:1100px;margin:0 auto}
+  header{background:linear-gradient(135deg,var(--azul),#003d82);color:#fff;padding:24px;border-radius:12px;text-align:center;margin-bottom:18px}
+  header h1{margin:0;font-size:1.6rem} header p{margin:6px 0 0;opacity:.9}
+  .drive-status{margin:14px 0;text-align:center;font-weight:600}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+  .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06);border:1px solid var(--borda);text-align:center}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+  button,select{padding:8px 12px;border-radius:8px;border:0;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--azul);color:#fff} .btn-success{background:var(--verde);color:#fff} .btn-warning{background:var(--amarelo);color:#222}
+  .btn-danger{background:var(--vermelho);color:#fff}.btn-secondary{background:#6c757d;color:#fff}
+  .materia{background:var(--card);border-radius:10px;margin-bottom:12px;border:1px solid var(--borda);overflow:hidden}
+  .materia-header{background:var(--azul);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .materia-content{padding:0;max-height:0;overflow:hidden;transition:all .32s}
+  .materia-content.open{padding:12px 14px;max-height:1000px}
+  .topico-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px dashed #eef3fb;gap:8px;flex-wrap:wrap}
+  .topico-text{flex:1}
+  .topico-actions{display:flex;gap:6px}
+  .btn-small{padding:6px 8px;font-size:.85rem;border-radius:8px}
+  .status{width:12px;height:12px;border-radius:50%;border:2px solid #ccc;margin-right:8px}
+  .status.pendente{background:#f8d7da;border-color:var(--vermelho)}
+  .status.andamento{background:#fff3cd;border-color:var(--amarelo)}
+  .status.concluido{background:#d4edda;border-color:var(--verde)}
+  .historico table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.9rem}
+  .historico th,.historico td{padding:8px;border:1px solid var(--borda);text-align:center}
+  .historico th{background:var(--azul);color:#fff}
+  .popup{position:fixed;right:18px;bottom:18px;background:linear-gradient(180deg,#fff,#f1fbff);border:1px solid #cfe9ff;padding:14px;border-radius:10px;box-shadow:0 10px 30px rgba(2,6,23,0.15);display:none;z-index:9999;max-width:320px}
+  .popup.show{display:block;animation:pop .36s ease-out}
+  @keyframes pop{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+  .backup-info{font-size:.9rem;color:#1e293b;margin-bottom:12px;text-align:center}
+  .small{font-size:.85rem;color:#475569}
+  .modal{display:none;position:fixed;inset:0;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:999}
+  .modal .card{width:90%;max-width:540px}
+  @media(max-width:760px){.topico-actions{width:100%;justify-content:flex-end}}
+</style>
 </head>
 <body>
-
 <div class="container">
   <header>
-    <h1>Plano de Estudos BB - Agente TI</h1>
-    <p>Concurso 2025/2026 | Ciclo com Timer Sequencial</p>
+    <h1>Plano de Estudos — BB (Agente de Tecnologia)</h1>
+    <p>Dashboard final — backups automáticos, Drive, popup e som</p>
   </header>
 
-  <div class="drive-status" id="driveStatus">Carregando Google Drive...</div>
-
-  <div style="text-align: center; margin: 20px 0;">
-    <div id="g_id_onload"
-         data-client_id="374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
-    </div>
-    <div id="g_id_signin"
-         data-type="standard"
-         data-size="large"
-         data-theme="filled_blue"
-         data-text="signin_with"
-         data-shape="rectangular"
-         data-logo_alignment="left">
-    </div>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h3>Tempo Hoje</h3>
-      <p><span id="tempoHoje">0</span> min</p>
-    </div>
-    <div class="stat-card">
-      <h3>Tempo Semana</h3>
-      <p><span id="tempoSemana">0</span> min</p>
-    </div>
-    <div class="stat-card">
-      <h3>Tópicos Concluídos</h3>
-      <p><span id="topicosConcluidos">0</span></p>
-    </div>
-    <div class="stat-card">
-      <h3>Progresso Geral</h3>
-      <p><span id="progressoGeral">0</span>%</p>
-    </div>
-  </div>
+  <div id="driveStatus" class="drive-status">Carregando integração com Google Drive...</div>
+  <div class="backup-info" id="lastBackupInfo">Último backup: —</div>
 
   <div class="controls">
-    <select id="cicloTempo">
-      <option value="15">15 min</option>
-      <option value="30" selected>30 min</option>
-      <option value="60">60 min</option>
-      <option value="90">90 min</option>
-      <option value="180">180 min</option>
-    </select>
+    <select id="cicloTempo"><option value="15">15</option><option value="30" selected>30</option><option value="60">60</option><option value="90">90</option><option value="180">180</option></select>
     <button class="btn-primary" onclick="gerarCiclo()">Gerar Ciclo</button>
     <button class="btn-success" onclick="iniciarPomodoro()">Pomodoro</button>
-    <button class="btn-warning" onclick="exportarParaDrive()">Backup no Drive</button>
-    <button class="btn-warning" onclick="listarBackupsDrive()">Restaurar do Drive</button>
+    <button class="btn-warning" onclick="exportarParaDriveManual()">Backup (Drive)</button>
+    <button class="btn-secondary" onclick="listarBackupsDrive()">Restaurar</button>
     <button class="btn-danger" onclick="resetarProgresso()">Resetar Progresso</button>
     <button class="btn-secondary" onclick="exportarPDF()">Exportar PDF</button>
   </div>
 
-  <div class="ciclo-ativo" id="cicloAtivo">
-    <h3 id="cicloTitulo">Ciclo Iniciado</h3>
-    <div class="ciclo-timer" id="timerCiclo">00:00</div>
-    <div class="ciclo-progress"><div class="ciclo-progress-fill" id="progressFill"></div></div>
-    <div class="ciclo-info">
-      <span>Tópico: <strong id="topicoAtual">-</strong></span>
-      <span>Progresso: <strong id="progressoTexto">0%</strong></span>
-    </div>
-    <div style="text-align:center; margin-top:15px;">
-      <button class="btn-warning" onclick="pausarCiclo()">Pausar</button>
-      <button class="btn-success" onclick="proximoTopico()" id="btnProximo" style="display:none;">Próximo</button>
-      <button class="btn-danger" onclick="pararCiclo()">Parar Ciclo</button>
-    </div>
+  <div class="stats-grid">
+    <div class="card"><h3 class="small">Tempo Hoje</h3><p id="tempoHoje">0 min</p></div>
+    <div class="card"><h3 class="small">Tempo Semana</h3><p id="tempoSemana">0 min</p></div>
+    <div class="card"><h3 class="small">Tópicos Concluídos</h3><p id="topicosConcluidos">0</p></div>
+    <div class="card"><h3 class="small">Progresso</h3><p id="progressoGeral">0%</p></div>
   </div>
 
   <div id="materias"></div>
 
-  <div class="historico">
-    <h2>Histórico de Estudo</h2>
+  <div class="historico card" style="margin-top:12px">
+    <h3>Histórico</h3>
     <table>
-      <thead>
-        <tr>
-          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Ação</th></tr></thead>
       <tbody id="tabelaHistorico"></tbody>
     </table>
   </div>
-
-  <div class="modal" id="notaModal">
-    <div class="modal-content">
-      <h3>Notas do Tópico</h3>
-      <textarea id="notaText" placeholder="Suas anotações, links, dúvidas..."></textarea>
-      <div style="text-align:right; margin-top:10px;">
-        <button class="btn-secondary" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-primary" onclick="salvarNota()">Salvar</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="pomodoro" id="pomodoroSection" style="display:none; text-align:center; margin:20px 0;">
-    <h3>Pomodoro</h3>
-    <div id="timer">25:00</div>
-    <button class="btn-success" onclick="iniciarPomodoro()">Iniciar</button>
-    <button class="btn-warning" onclick="pausarPomodoro()">Pausar</button>
-    <button class="btn-danger" onclick="pararPomodoro()">Parar</button>
-  </div>
 </div>
 
-<script>
-// === CONFIGURAÇÕES ===
-const CLIENT_ID = '374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyB5v6v6v6v6v6v6v6v6v6v6v6v6v6v6v6v'; // Substitua pela sua API Key (opcional)
-const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+<!-- popup + audio -->
+<div id="popup" class="popup"><strong id="popupTitle">✦ Ciclo concluído</strong><div id="popupText" class="small" style="margin-top:8px">Excelente trabalho — faça uma pausa breve!</div></div>
+<audio id="alarmSound" preload="auto">
+  <!-- Small motivational chime encoded as base64 (short, pleasant). -->
+  <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAA... (substitua pelo seu mp3 base64 se desejar)" type="audio/mp3">
+</audio>
 
-// === DADOS ===
+<!-- nota modal -->
+<div id="notaModal" class="modal"><div class="card"><h3>Notas do tópico</h3><textarea id="notaText" style="width:100%;height:120px"></textarea><div style="text-align:right;margin-top:8px"><button class="btn-secondary" onclick="fecharModal()">Cancelar</button><button class="btn-primary" onclick="salvarNota()">Salvar</button></div></div></div>
+
+<script>
+/* --------------------
+   CONFIG / DADOS
+   -------------------- */
+const CLIENT_ID = '374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com';
+const API_KEY = ''; // opcional
+const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE_NAME = 'bb-estudo-backup.json'; // arquivo único no appDataFolder
+
 const materias = [
   {nome:'LÍNGUA PORTUGUESA',topicos:['Compreensão de textos','Ortografia oficial','Classe e emprego de palavras','Emprego do acento indicativo de crase','Sintaxe da oração e do período','Emprego dos sinais de pontuação','Concordância verbal e nominal','Regência verbal e nominal','Colocação dos pronomes oblíquos átonos'],peso:2},
   {nome:'LÍNGUA INGLESA',topicos:['Vocabulário fundamental','Aspectos gramaticais básicos'],peso:1},
@@ -375,446 +116,484 @@ const materias = [
   {nome:'TECNOLOGIA DA INFORMAÇÃO',topicos:['Aprendizagem de máquina','Banco de dados SQL e NoSQL','Big Data','Desenvolvimento Mobile','Estrutura de dados e algoritmos','Ferramentas e linguagens para dados'],peso:3}
 ];
 
-let historico = JSON.parse(localStorage.getItem('bb-historico-v10')) || [];
-let cicloAtual = [], indiceAtual = 0, timerCiclo = null, tempoRestante = 0, cicloPausado = false;
-let pomodoroTime = 25 * 60, timerInterval = null;
+let historico = JSON.parse(localStorage.getItem('bb-historico-vfinal')) || [];
+let lastDriveFileId = localStorage.getItem('bb-drive-fileid') || null;
+let lastBackupMeta = JSON.parse(localStorage.getItem('bb-last-backup-meta')) || null;
+
+let cicloAtual = [], indiceAtual = 0, cronCiclo = null, tempoRestante = 0, cicloPausado = false;
+let pomodoroTimer = null;
+
 let gapiInited = false, gisInited = false, tokenClient;
 
-// === SALVAR E ATUALIZAR ===
-function salvar() {
-  localStorage.setItem('bb-historico-v10', JSON.stringify(historico));
-  atualizarTudo();
-}
-
-function atualizarTudo() {
-  atualizarTabela();
-  atualizarEstatisticas();
-  renderizarMaterias();
-  atualizarStatusDrive();
-}
-
-// === GOOGLE AUTH ===
-function initializeGapi() {
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: [DISCOVERY_DOC],
-    });
-    gapiInited = true;
-    maybeEnableButtons();
-  });
-}
-
-function initializeGis() {
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: (resp) => {
-      if (resp.error) return console.error(resp);
-      atualizarStatusDrive();
-    },
-  });
-  gisInited = true;
-  maybeEnableButtons();
-}
-
-function maybeEnableButtons() {
-  if (gapiInited && gisInited) {
-    atualizarStatusDrive();
-  }
-}
-
-function handleCredentialResponse(response) {
-  // GSI login
-  tokenClient.requestAccessToken({ prompt: '' });
-}
-
-function gapiLogout() {
-  google.accounts.id.disableAutoSelect();
-  gapi.auth2.getAuthInstance()?.signOut();
-  localStorage.removeItem('google_token');
-  atualizarStatusDrive();
-}
-
-function atualizarStatusDrive() {
-  const el = document.getElementById('driveStatus');
-  if (!gapiInited || !gisInited) {
-    el.innerHTML = 'Carregando Google Drive...';
-    return;
-  }
-  const isSignedIn = gapi.client.getToken();
-  if (isSignedIn) {
-    el.innerHTML = `
-      Conectado ao Google Drive!
-      <button class="btn-warning" style="margin-left:10px; padding:6px 12px; font-size:0.9rem;" onclick="exportarParaDrive()">Backup Agora</button>
-      <button class="btn-secondary" style="margin-left:5px; padding:6px 12px; font-size:0.9rem;" onclick="listarBackupsDrive()">Restaurar</button>
-      <button class="btn-danger" style="margin-left:5px; padding:6px 12px; font-size:0.9rem;" onclick="gapiLogout()">Sair</button>
-    `;
+/* --------------------
+   UI helpers
+   -------------------- */
+function atualizarBackupInfo(){
+  const el = document.getElementById('lastBackupInfo');
+  if (lastBackupMeta){
+    el.textContent = `Último backup: ${new Date(lastBackupMeta.timestamp).toLocaleString()} (${lastBackupMeta.source})`;
   } else {
-    el.innerHTML = 'Clique no botão para conectar ao Google Drive';
+    el.textContent = 'Último backup: nenhum';
+  }
+}
+function showPopup(title, text, playSound=true){
+  const p = document.getElementById('popup');
+  document.getElementById('popupTitle').textContent = title;
+  document.getElementById('popupText').textContent = text;
+  p.classList.add('show');
+  setTimeout(()=>p.classList.remove('show'),6000);
+  if (playSound){
+    const a = document.getElementById('alarmSound');
+    // try play, ignore if blocked
+    a.currentTime = 0;
+    a.play().catch(()=>{});
   }
 }
 
-// === DRIVE ===
-async function exportarParaDrive() {
-  if (!gapi.client.getToken()) return tokenClient.requestAccessToken();
-  const dados = { version: 'v10', timestamp: new Date().toISOString(), historico };
-  const content = JSON.stringify(dados, null, 2);
-  const fileName = `bb-estudo-backup-${new Date().toISOString().slice(0,10)}.json`;
+/* --------------------
+   BACKUP: single-file strategy
+   -------------------- */
+/* Ensure we have OAuth token before using gapi.client */
+function requestTokenIfNeeded() {
+  return new Promise((resolve,reject)=>{
+    try {
+      const token = gapi.client.getToken && gapi.client.getToken();
+      if (token && token.access_token) return resolve(token);
+      // request token via tokenClient
+      tokenClient.requestAccessToken({prompt:''});
+      // wait for token to appear (poll short)
+      let attempts=0;
+      const iv=setInterval(()=>{
+        const t = gapi.client.getToken && gapi.client.getToken();
+        attempts++;
+        if (t && t.access_token){ clearInterval(iv); resolve(t); }
+        if (attempts>20){ clearInterval(iv); reject(new Error('timeout token')); }
+      },250);
+    } catch(e){ reject(e); }
+  });
+}
 
+/* Save or update a single file in appDataFolder. If fileId known, update; otherwise try to find by name, else create. */
+async function uploadBackupToDrive(dados){
+  // ensure gapi initialized and token present
+  await requestTokenIfNeeded().catch(e=>{ throw e; });
+  const content = JSON.stringify(dados,null,2);
   const boundary = '-------314159265358979323846';
   const delimiter = "\r\n--" + boundary + "\r\n";
   const close_delim = "\r\n--" + boundary + "--";
+  const metadata = { name: DRIVE_FILE_NAME, mimeType: 'application/json', parents: ['appDataFolder'] };
+  const multipartRequestBody = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter +
+      'Content-Type: application/json\r\n\r\n' + content + close_delim;
 
-  const metadata = { name: fileName, mimeType: 'application/json', parents: ['appDataFolder'] };
-  const body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) + delimiter +
-               'Content-Type: application/json\r\n\r\n' + content + close_delim;
-
-  try {
-    const response = await gapi.client.request({
-      path: '/upload/drive/v3/files?uploadType=multipart',
-      method: 'POST',
-      headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
-      body: body
-    });
-    alert('Backup salvo com sucesso no Google Drive!');
-  } catch (error) {
-    console.error(error);
-    alert('Erro ao salvar. Tente novamente.');
+  // if we have a fileId, try update first
+  if (lastDriveFileId){
+    try {
+      const resp = await gapi.client.request({
+        path: `/upload/drive/v3/files/${lastDriveFileId}?uploadType=multipart`,
+        method: 'PATCH',
+        headers: {'Content-Type': 'multipart/related; boundary=' + boundary},
+        body: multipartRequestBody
+      });
+      return resp;
+    } catch(err){
+      console.warn('Falha ao atualizar fileId — tentaremos criar novo arquivo:', err);
+      // fallthrough to create
+    }
   }
-}
 
-async function listarBackupsDrive() {
-  if (!gapi.client.getToken()) return tokenClient.requestAccessToken();
+  // try find existing file by name
   try {
-    const response = await gapi.client.drive.files.list({
+    const find = await gapi.client.drive.files.list({
       spaces: 'appDataFolder',
-      fields: 'files(id, name)',
-      q: 'mimeType="application/json"'
+      q: `name='${DRIVE_FILE_NAME}' and mimeType='application/json'`,
+      fields: 'files(id,name,createdTime)',
+      pageSize: 1
     });
-    const files = response.result.files;
-    if (!files || files.length === 0) return alert('Nenhum backup encontrado.');
-
-    let msg = 'Últimos backups:\n\n';
-    files.slice(-5).reverse().forEach(f => {
-      const date = f.name.match(/\d{4}-\d{2}-\d{2}/)?.[0] || 'Data desconhecida';
-      msg += `• ${date} (ID: ${f.id})\n`;
-    });
-    msg += '\nCole o ID para restaurar:';
-    const id = prompt(msg);
-    if (!id) return;
-
-    const file = await gapi.client.drive.files.get({
-      fileId: id,
-      alt: 'media'
-    });
-    const dados = JSON.parse(file.body);
-    if (confirm(`Restaurar backup de ${new Date(dados.timestamp).toLocaleDateString()}?`)) {
-      historico = dados.historico;
-      salvar();
-      alert('Backup restaurado!');
+    if (find.result.files && find.result.files.length>0){
+      lastDriveFileId = find.result.files[0].id;
+      localStorage.setItem('bb-drive-fileid', lastDriveFileId);
+      const resp = await gapi.client.request({
+        path: `/upload/drive/v3/files/${lastDriveFileId}?uploadType=multipart`,
+        method: 'PATCH',
+        headers: {'Content-Type': 'multipart/related; boundary=' + boundary},
+        body: multipartRequestBody
+      });
+      return resp;
     }
-  } catch (error) {
-    alert('Erro ao carregar backups.');
-  }
-}
+  } catch(e){ console.warn('Busca existing file falhou', e); }
 
-// === RESTANTE DAS FUNÇÕES (TABELA, ESTATÍSTICAS, MATÉRIAS, CICLO, POMODORO, NOTAS) ===
-function atualizarTabela() {
-  const tbody = document.getElementById('tabelaHistorico');
-  tbody.innerHTML = '';
-  historico.forEach((h, i) => {
-    const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
-    const tr = document.createElement('tr');
-    tr.className = h.status === 'Concluído' ? 'concluido' : h.status === 'Em andamento' ? 'andamento' : '';
-    tr.innerHTML = `
-      <td>${h.materia}</td>
-      <td>${h.topico}</td>
-      <td>${formatarHora(h.inicio)}</td>
-      <td>${h.fim ? formatarHora(h.fim) : '-'}</td>
-      <td>${duracao}</td>
-      <td>${h.status}</td>
-      <td><button class="btn-delete" onclick="excluirRegistro(${i})">Excluir</button></td>
-    `;
-    tbody.appendChild(tr);
+  // create new
+  const resp = await gapi.client.request({
+    path: '/upload/drive/v3/files?uploadType=multipart',
+    method: 'POST',
+    headers: {'Content-Type': 'multipart/related; boundary=' + boundary},
+    body: multipartRequestBody
   });
+  // store file id
+  try { lastDriveFileId = resp.result.id; localStorage.setItem('bb-drive-fileid', lastDriveFileId); } catch(e){}
+  return resp;
 }
 
-function excluirRegistro(i) {
-  if (confirm('Excluir este registro?')) {
-    historico.splice(i, 1);
-    salvar();
+/* Automatic backup helper — tries Drive, falls back to localStorage */
+async function realizarBackupAutomatico(notify=false){
+  const payload = { version:'vfinal', timestamp: new Date().toISOString(), historico };
+  // always store local fallback
+  localStorage.setItem('bb-last-local-backup', JSON.stringify(payload));
+  // try Drive if gapi initialized
+  if (gapiInited && gisInited){
+    try {
+      await uploadBackupToDrive(payload);
+      lastBackupMeta = { timestamp: payload.timestamp, source:'Drive' };
+      localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+      atualizarBackupInfo();
+      if (notify) showPopup('Backup salvo', `Backup salvo no Google Drive (${new Date().toLocaleString()})`, false);
+      return true;
+    } catch(e){
+      console.warn('Backup Drive falhou, salvo localmente', e);
+      lastBackupMeta = { timestamp: payload.timestamp, source:'Local' };
+      localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+      atualizarBackupInfo();
+      if (notify) showPopup('Backup local', `Backup salvo localmente (${new Date().toLocaleString()})`, false);
+      return false;
+    }
+  } else {
+    lastBackupMeta = { timestamp: payload.timestamp, source:'Local' };
+    localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+    atualizarBackupInfo();
+    if (notify) showPopup('Backup local', `Backup salvo localmente (${new Date().toLocaleString()})`, false);
+    return false;
   }
 }
 
-function atualizarEstatisticas() {
-  const hoje = new Date().toISOString().slice(0,10);
-  let tempoHoje = 0, tempoSemana = 0, concluidos = 0, totalPesoConcluido = 0, totalPeso = 0;
-
-  const inicioSemana = new Date();
-  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1);
-  inicioSemana.setHours(0,0,0,0);
-
-  materias.forEach(m => totalPeso += m.peso * m.topicos.length);
-
-  historico.forEach(h => {
-    if (h.fim) {
-      const inicio = new Date(h.inicio);
-      const fim = new Date(h.fim);
-      const mins = Math.round((fim - inicio) / 60000);
-      if (h.inicio.slice(0,10) === hoje) tempoHoje += mins;
-      if (inicio >= inicioSemana) tempoSemana += mins;
-      if (h.status === 'Concluído') {
-        concluidos++;
-        const materia = materias.find(m => m.nome === h.materia);
-        if (materia) totalPesoConcluido += materia.peso;
+/* Try to restore latest backup from Drive (if authorized); otherwise restore local fallback */
+async function restaurarUltimoBackupAoCarregar(){
+  // prefer Drive if possible
+  if (gapiInited && gisInited){
+    try {
+      await requestTokenIfNeeded();
+      // find newest file by name
+      const res = await gapi.client.drive.files.list({
+        spaces: 'appDataFolder', q:`name='${DRIVE_FILE_NAME}' and mimeType='application/json'`,
+        orderBy:'createdTime desc', pageSize:1, fields:'files(id,name,createdTime)'
+      });
+      const files = res.result.files || [];
+      if (files.length){
+        const file = files[0];
+        const f = await gapi.client.drive.files.get({ fileId: file.id, alt:'media' });
+        const dados = typeof f.body==='string' ? JSON.parse(f.body) : f.result;
+        if (dados && dados.historico){
+          historico = dados.historico;
+          lastDriveFileId = file.id;
+          localStorage.setItem('bb-drive-fileid', lastDriveFileId);
+          lastBackupMeta = { timestamp: dados.timestamp || new Date().toISOString(), source:'Drive' };
+          localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+          salvarLocalState(false);
+          console.log('Backup restaurado do Drive automaticamente.');
+          return true;
+        }
       }
-    }
-  });
-
-  const progresso = totalPeso > 0 ? Math.round((totalPesoConcluido / totalPeso) * 100) : 0;
-
-  document.getElementById('tempoHoje').textContent = tempoHoje;
-  document.getElementById('tempoSemana').textContent = tempoSemana;
-  document.getElementById('topicosConcluidos').textContent = concluidos;
-  document.getElementById('progressoGeral').textContent = progresso;
+    } catch(e){ console.warn('Restauração Drive falhou:', e); }
+  }
+  const local = localStorage.getItem('bb-last-local-backup');
+  if (local){
+    try {
+      const dados = JSON.parse(local);
+      if (dados && dados.historico){ historico = dados.historico; lastBackupMeta = { timestamp: dados.timestamp, source:'Local' }; localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta)); salvarLocalState(false); console.log('Backup local restaurado.'); return true; }
+    } catch(e){ console.warn('Erro restaurando local fallback', e); }
+  }
+  return false;
 }
 
-function renderizarMaterias() {
+/* --------------------
+   Persist / UI / Historico
+   -------------------- */
+function salvarLocalState(alertBackup=true){
+  // persist main history and last local backup
+  localStorage.setItem('bb-historico-vfinal', JSON.stringify(historico));
+  localStorage.setItem('bb-last-local-backup', JSON.stringify({version:'vfinal', timestamp:new Date().toISOString(), historico}));
+  atualizarTudo();
+  if (alertBackup) realizarBackupAutomatico(false).catch(()=>{});
+}
+
+function atualizarTudo(){
+  renderizarMaterias();
+  atualizarTabela();
+  atualizarEstatisticas();
+  atualizarBackupInfo();
+  atualizarDriveStatusUI();
+}
+
+/* UI render */
+function renderizarMaterias(){
   const container = document.getElementById('materias');
   container.innerHTML = '';
-  materias.forEach(m => {
-    const div = document.createElement('div');
-    div.className = 'materia';
-    const concluidos = m.topicos.filter(t => historico.some(h => h.materia === m.nome && h.topico === t && h.status === 'Concluído')).length;
+  materias.forEach(m=>{
+    const div=document.createElement('div'); div.className='materia';
+    const concluidos = m.topicos.filter(t=> historico.some(h=>h.materia===m.nome && h.topico===t && h.status==='Concluído')).length;
     div.innerHTML = `
-      <div class="materia-header" onclick="toggleMateria(this)">
-        <div>${m.nome} <span class="peso">(Peso: ${m.peso})</span> <small style="opacity:0.8;">${concluidos}/${m.topicos.length}</small></div>
-        <span class="arrow">Down Arrow</span>
-      </div>
+      <div class="materia-header" onclick="toggleMateria(this)"><div>${m.nome} <small style="opacity:.85">(${concluidos}/${m.topicos.length})</small></div><div class="small">Peso ${m.peso} ▾</div></div>
       <div class="materia-content">
-        ${m.topicos.map(t => {
-          const reg = historico.find(h => h.materia === m.nome && h.topico === t);
+        ${m.topicos.map(t=>{
+          const reg = historico.find(h=>h.materia===m.nome && h.topico===t && h.status!=='Removido');
           const status = reg?.status || 'Pendente';
-          const statusClass = status === 'Concluído' ? 'concluido' : status === 'Em andamento' ? 'andamento' : 'pendente';
-          return `
-            <div class="topico-item">
-              <div class="status ${statusClass}"></div>
-              <div class="topico-text">${t}</div>
-              <div class="topico-actions">
-                ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciar('${m.nome}','${t.replace(/'/g, "\\'")}')">Iniciar</button>` : ''}
-                ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizar('${m.nome}','${t.replace(/'/g, "\\'")}')">Finalizar</button>` : ''}
-                <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${t.replace(/'/g, "\\'")}','${(reg?.nota||'').replace(/'/g, "\\'")}')">Note</button>
-              </div>
+          const cls = status==='Concluído'?'concluido': status==='Em andamento'?'andamento':'';
+          return `<div class="topico-item">
+            <div class="status ${status==='Concluído'?'concluido':status==='Em andamento'?'andamento':'pendente'}"></div>
+            <div class="topico-text">${t}</div>
+            <div class="topico-actions">
+              ${!reg?.inicio ? `<button class="btn-success btn-small" onclick="iniciarTopico('${m.nome}','${escapeJs(t)}')">Iniciar</button>` : ''}
+              ${reg?.inicio && !reg?.fim ? `<button class="btn-warning btn-small" onclick="finalizarTopico('${m.nome}','${escapeJs(t)}')">Finalizar</button>` : ''}
+              <button class="btn-secondary btn-small" onclick="abrirNota('${m.nome}','${escapeJs(t)}')">Notas</button>
             </div>
-          `;
+          </div>`;
         }).join('')}
       </div>
     `;
     container.appendChild(div);
   });
 }
+function toggleMateria(header){ header.nextElementSibling.classList.toggle('open'); }
 
-function toggleMateria(header) {
-  const content = header.nextElementSibling;
-  const arrow = header.querySelector('.arrow');
-  content.classList.toggle('open');
-  arrow.textContent = content.classList.contains('open') ? 'Up Arrow' : 'Down Arrow';
+/* Historico table */
+function atualizarTabela(){
+  const tbody=document.getElementById('tabelaHistorico'); tbody.innerHTML='';
+  historico.forEach((h,i)=>{
+    const dur = h.fim ? `${Math.round((new Date(h.fim)-new Date(h.inicio))/60000)} min` : '-';
+    const tr=document.createElement('tr');
+    tr.className = h.status==='Concluído'?'concluido':h.status==='Em andamento'?'andamento':'';
+    tr.innerHTML = `<td>${h.materia}</td><td>${h.topico}</td><td>${h.inicio?formatDate(h.inicio):'-'}</td><td>${h.fim?formatDate(h.fim):'-'}</td><td>${dur}</td><td>${h.status}</td><td><button class="btn-danger btn-small" onclick="excluirRegistro(${i})">Excluir</button></td>`;
+    tbody.appendChild(tr);
+  });
 }
+function excluirRegistro(i){ if(confirm('Excluir registro?')){ historico.splice(i,1); salvarLocalState(true); } }
 
-function iniciar(materia, topico) {
-  if (historico.some(h => h.materia === materia && h.topico === topico && !h.fim)) return alert('Já em andamento!');
-  historico.push({ materia, topico, inicio: new Date().toISOString(), fim: null, status: 'Em andamento', nota: '' });
-  salvar();
-}
-
-function finalizar(materia, topico) {
-  const reg = historico.find(h => h.materia === materia && h.topico === topico && !h.fim);
-  if (!reg) return alert('Não iniciado!');
-  reg.fim = new Date().toISOString();
-  reg.status = 'Concluído';
-  salvar();
-}
-
-function resetarProgresso() {
-  if (confirm('Resetar todo o progresso? (Histórico mantido)')) {
-    historico.forEach(h => { h.inicio = null; h.fim = null; h.status = 'Pendente'; h.nota = ''; });
-    salvar();
-  }
-}
-
-let notaAtual = {};
-function abrirNota(materia, topico, nota) {
-  notaAtual = { materia, topico };
-  document.getElementById('notaText').value = nota;
-  document.getElementById('notaModal').style.display = 'flex';
-}
-
-function salvarNota() {
-  const nota = document.getElementById('notaText').value;
-  const reg = historico.find(h => h.materia === notaAtual.materia && h.topico === notaAtual.topico);
-  if (reg) reg.nota = nota;
-  salvar();
-  fecharModal();
-}
-
-function fecharModal() {
-  document.getElementById('notaModal').style.display = 'none';
-}
-
-// === CICLO ===
-function gerarCiclo() {
-  const tempoTotal = parseInt(document.getElementById('cicloTempo').value) || 60;
-  const agora = new Date();
-  const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  cicloAtual = [];
-
-  historico.forEach(h => {
-    if (h.inicio) {
-      const materia = materias.find(m => m.nome === h.materia);
-      if (!materia) return;
-      const item = { materia: h.materia, topico: h.topico, peso: materia.peso };
-      if (!h.fim) cicloAtual.push({ ...item, tipo: 'Estudo', urgencia: 3 });
-      else if (new Date(h.fim) <= seteDiasAtras) cicloAtual.push({ ...item, tipo: 'Revisão', urgencia: 2 });
+/* Estatísticas */
+function atualizarEstatisticas(){
+  const hoje = new Date().toISOString().slice(0,10);
+  let tempoHoje=0, tempoSemana=0, concluidos=0, totalPesoConcluido=0, totalPeso=0;
+  const inicioSemana=new Date(); inicioSemana.setDate(inicioSemana.getDate()-inicioSemana.getDay()+1); inicioSemana.setHours(0,0,0,0);
+  materias.forEach(m=> totalPeso += m.peso * m.topicos.length);
+  historico.forEach(h=>{
+    if (h.fim){
+      const inicio = new Date(h.inicio), fim=new Date(h.fim);
+      const mins = Math.round((fim-inicio)/60000);
+      if (h.inicio.slice(0,10)===hoje) tempoHoje+=mins;
+      if (inicio>=inicioSemana) tempoSemana+=mins;
+      if (h.status==='Concluído'){ concluidos++; const materia = materias.find(x=>x.nome===h.materia); if (materia) totalPesoConcluido += materia.peso; }
     }
   });
+  document.getElementById('tempoHoje').textContent = tempoHoje + ' min';
+  document.getElementById('tempoSemana').textContent = tempoSemana + ' min';
+  document.getElementById('topicosConcluidos').textContent = concluidos;
+  document.getElementById('progressoGeral').textContent = totalPeso>0 ? Math.round((totalPesoConcluido/totalPeso)*100) + '%' : '0%';
+}
 
-  if (cicloAtual.length === 0) return alert('Nenhum tópico iniciado!');
+/* --------------------
+   Iniciar / Finalizar topico (com backup automático)
+   -------------------- */
+function iniciarTopico(materia, topico){
+  // prevent duplicates
+  if (historico.some(h=>h.materia===materia && h.topico===topico && !h.fim)) return alert('Tópico já em andamento!');
+  historico.push({ materia, topico, inicio: new Date().toISOString(), fim:null, status:'Em andamento', nota:'' });
+  salvarLocalState(false);
+  // automatic backup (try Drive)
+  realizarBackupAutomatico(false).catch(()=>{});
+  atualizarTudo();
+}
+function finalizarTopico(materia, topico){
+  const reg = historico.find(h=>h.materia===materia && h.topico===topico && !h.fim);
+  if(!reg) return alert('Tópico não iniciado.');
+  reg.fim = new Date().toISOString();
+  reg.status = 'Concluído';
+  salvarLocalState(false);
+  // backup and notify
+  realizarBackupAutomatico(false).then(()=>{ /* ok */ }).catch(()=>{});
+  atualizarTudo();
+}
 
-  cicloAtual.sort((a, b) => b.urgencia - a.urgencia || b.peso - a.peso);
-  const total = cicloAtual.reduce((s, i) => s + i.peso * i.urgencia, 0);
-  cicloAtual.forEach(item => {
-    const prop = (item.peso * item.urgencia) / total;
-    item.minutos = Math.max(3, Math.round(prop * tempoTotal));
+/* Notas modal */
+let notaContext = null;
+function abrirNota(materia, topico){
+  notaContext = { materia, topico };
+  const reg = historico.find(h=>h.materia===materia && h.topico===topico);
+  document.getElementById('notaText').value = reg?.nota || '';
+  document.getElementById('notaModal').style.display = 'flex';
+}
+function fecharModal(){ document.getElementById('notaModal').style.display = 'none'; notaContext=null; }
+function salvarNota(){ if(!notaContext) return; const reg = historico.find(h=>h.materia===notaContext.materia && h.topico===notaContext.topico); if(reg) reg.nota = document.getElementById('notaText').value; salvarLocalState(false); fecharModal(); }
+
+/* --------------------
+   CICLO inteligente (prioriza pendentes por peso)
+   -------------------- */
+function gerarCiclo(){
+  const totalMin = parseInt(document.getElementById('cicloTempo').value)||30;
+  // build list of pending topics
+  const pendentes = [];
+  materias.forEach(m=>{
+    m.topicos.forEach(t=>{
+      const concluido = historico.some(h=>h.materia===m.nome && h.topico===t && h.status==='Concluído');
+      if(!concluido) pendentes.push({materia:m.nome, topico:t, peso:m.peso});
+    });
   });
-
+  if(!pendentes.length) return alert('Nenhum tópico pendente. Ótimo trabalho!');
+  const pesoTotal = pendentes.reduce((s,i)=>s+i.peso,0);
+  cicloAtual = pendentes.map(p => ({...p, minutos: Math.max(3, Math.round((p.peso/pesoTotal)*totalMin))}));
+  indiceAtual = 0;
   iniciarCiclo();
 }
 
-function iniciarCiclo() {
-  indiceAtual = 0;
-  document.getElementById('cicloAtivo').style.display = 'block';
-  document.getElementById('btnProximo').style.display = 'none';
-  atualizarCicloUI();
-  iniciarTimerTopico();
+function iniciarCiclo(){
+  if(!cicloAtual.length) return;
+  document.getElementById('cicloAtivo')?.remove?.();
+  // create simple on-screen area (reusing popup for notification and show)
+  // start timer for first topic
+  iniciarTopicoAutomaticoParaCiclo();
 }
-
-function iniciarTimerTopico() {
-  if (indiceAtual >= cicloAtual.length) return finalizarCiclo();
+function iniciarTopicoAutomaticoParaCiclo(){
+  if(indiceAtual>=cicloAtual.length){ finalizarCicloComSucesso(); return; }
   const item = cicloAtual[indiceAtual];
+  // start (create history record if not already)
+  if(!historico.some(h=>h.materia===item.materia && h.topico===item.topico && !h.fim)){
+    historico.push({materia:item.materia, topico:item.topico, inicio:new Date().toISOString(), fim:null, status:'Em andamento', nota:''});
+    salvarLocalState(false);
+    realizarBackupAutomatico(false).catch(()=>{});
+  }
   tempoRestante = item.minutos * 60;
-
-  timerCiclo = setInterval(() => {
-    if (!cicloPausado && tempoRestante > 0) {
+  if(cronCiclo) clearInterval(cronCiclo);
+  cronCiclo = setInterval(()=>{
+    if(!cicloPausado){
       tempoRestante--;
-      atualizarTimerDisplay();
-      atualizarProgressoCiclo();
-    } else if (tempoRestante <= 0) {
-      clearInterval(timerCiclo);
-      notificarFimTopico();
+      if(tempoRestante<=0){
+        clearInterval(cronCiclo);
+        // finalize this topic
+        const reg = historico.find(h=>h.materia===item.materia && h.topico===item.topico && !h.fim);
+        if(reg){ reg.fim = new Date().toISOString(); reg.status='Concluído'; salvarLocalState(false); realizarBackupAutomatico(false).catch(()=>{}); }
+        // notify with popup + sound
+        showPopup('✨ Ciclo concluído', `Você finalizou: ${item.topico}. Excelente trabalho!`, true);
+        // move to next
+        indiceAtual++;
+        // small delay before next to allow user to breathe
+        setTimeout(()=>{ iniciarTopicoAutomaticoParaCiclo(); }, 1200);
+      }
     }
-  }, 1000);
+  },1000);
 }
 
-function notificarFimTopico() {
-  alert(`Tempo esgotado!\n\nTópico: ${cicloAtual[indiceAtual].topico}\n\nClique em "Próximo".`);
-  document.getElementById('btnProximo').style.display = 'inline-block';
+/* finalize */
+function finalizarCicloComSucesso(){
+  if(cronCiclo) clearInterval(cronCiclo);
+  showPopup('✅ Ciclo completo', `Todos os itens do ciclo foram concluídos!`, true);
+  indiceAtual = 0; cicloAtual = [];
+  atualizarTudo();
 }
 
-function proximoTopico() {
-  indiceAtual++;
-  document.getElementById('btnProximo').style.display = 'none';
-  if (indiceAtual < cicloAtual.length) {
-    atualizarCicloUI();
-    iniciarTimerTopico();
+/* --------------------
+   POMODORO
+   -------------------- */
+function iniciarPomodoro(){
+  if(pomodoroTimer) clearInterval(pomodoroTimer);
+  let time = 25*60;
+  pomodoroTimer = setInterval(()=>{ time--; const mins = String(Math.floor(time/60)).padStart(2,'0'); const secs = String(time%60).padStart(2,'0'); document.title = `⏱ ${mins}:${secs} — BB`; if(time<=0){ clearInterval(pomodoroTimer); showPopup('🔔 Pomodoro concluído','Parabéns — faça 5 min de pausa', true); document.title = 'BB — Plano de Estudos'; } },1000);
+}
+
+/* --------------------
+   Drive UI / Auth init
+   -------------------- */
+function atualizarDriveStatusUI(){
+  const el = document.getElementById('driveStatus');
+  if(!gapiInited || !gisInited){ el.textContent = 'Drive: carregando integração...'; return; }
+  const token = gapi.client.getToken && gapi.client.getToken();
+  if(token && token.access_token){
+    el.innerHTML = `Conectado ao Google Drive — arquivo: ${lastDriveFileId?lastDriveFileId:'(não definido)'} <button class="btn-warning btn-small" onclick="exportarParaDriveManual()">Backup agora</button> <button class="btn-secondary btn-small" onclick="listarBackupsDrive()">Restaurar</button>`;
   } else {
-    finalizarCiclo();
+    el.innerHTML = `Drive: não autenticado — permita acesso para backups (clique no botão de login Google, canto superior do navegador).`;
   }
 }
 
-function pausarCiclo() {
-  cicloPausado = !cicloPausado;
-  document.querySelector('#cicloAtivo .btn-warning').textContent = cicloPausado ? 'Retomar' : 'Pausar';
+/* manual export (button) */
+async function exportarParaDriveManual(){
+  const payload = { version:'vfinal', timestamp:new Date().toISOString(), historico };
+  try{
+    await requestTokenIfNeeded();
+    await uploadBackupToDrive(payload);
+    lastBackupMeta = { timestamp: payload.timestamp, source:'Drive' };
+    localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+    atualizarBackupInfo();
+    showPopup('Backup Drive salvo', `Backup salvo no Drive (${new Date().toLocaleString()})`, false);
+  }catch(e){
+    console.warn('export manual failed', e);
+    localStorage.setItem('bb-last-local-backup', JSON.stringify(payload));
+    lastBackupMeta = { timestamp: payload.timestamp, source:'Local' };
+    localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta));
+    atualizarBackupInfo();
+    showPopup('Backup local salvo', 'Houve falha no Drive — backup local salvo', false);
+  }
 }
 
-function pararCiclo() {
-  clearInterval(timerCiclo);
-  document.getElementById('cicloAtivo').style.display = 'none';
-  cicloAtual = [];
+/* list & restore (manual) */
+async function listarBackupsDrive(){
+  try{
+    await requestTokenIfNeeded();
+    const res = await gapi.client.drive.files.list({spaces:'appDataFolder', q:`name='${DRIVE_FILE_NAME}'`, orderBy:'createdTime desc', pageSize:10, fields:'files(id,name,createdTime)'});
+    const files = res.result.files || [];
+    if(!files.length){ alert('Nenhum backup encontrado no Drive.'); return; }
+    const list = files.map(f => `${f.name} (id:${f.id})`).join('\n');
+    const id = prompt('Backups:\n\n' + list + '\n\nCole o ID para restaurar:');
+    if(!id) return;
+    const file = await gapi.client.drive.files.get({ fileId: id, alt:'media' });
+    const dados = typeof file.body==='string' ? JSON.parse(file.body) : file.result;
+    if(dados && dados.historico && confirm('Restaurar backup selecionado?')){ historico = dados.historico; lastDriveFileId = id; localStorage.setItem('bb-drive-fileid', id); localStorage.setItem('bb-last-backup-meta', JSON.stringify({timestamp:dados.timestamp||new Date().toISOString(), source:'Drive'})); salvarLocalState(false); showPopup('Restaurado','Backup restaurado com sucesso (Drive)',false); }
+  }catch(e){ console.error(e); alert('Erro ao acessar backups do Drive.'); }
 }
 
-function finalizarCiclo() {
-  clearInterval(timerCiclo);
-  alert('Ciclo concluído!');
-  document.getElementById('cicloAtivo').style.display = 'none';
-  cicloAtual = [];
+/* --------------------
+   util
+   -------------------- */
+function formatDate(iso){ if(!iso) return '-'; return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function escapeJs(s){ return s.replace(/'/g,"\\'"); }
+function resetarProgresso(){ if(confirm('Resetar progresso (mantém histórico)?')){ historico.forEach(h=>{ h.inicio=null; h.fim=null; h.status='Pendente'; h.nota=''; }); salvarLocalState(true); } }
+function exportarPDF(){ window.print(); }
+
+/* --------------------
+   GOOGLE init (gapi + gis)
+   -------------------- */
+function initializeGapi(){
+  gapi.load('client', async ()=>{
+    try{ await gapi.client.init({ apiKey: API_KEY || undefined, discoveryDocs: [DISCOVERY_DOC] }); }catch(e){ console.warn('GAPI init',e); }
+    gapiInited = true; atualizarDriveStatusUI();
+    // attempt restore if token present (manual login may be required)
+    try{ await restaurarUltimoBackupAoCarregar(); }catch(e){ console.warn('restore on load', e); }
+    atualizarTudo();
+  });
+}
+function initializeGis(){
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: (resp)=>{ if(resp.error) console.error(resp); else { console.log('token ok'); atualizarDriveStatusUI(); restaurarUltimoBackupAoCarregar().catch(()=>{}); } } });
+  gisInited = true;
+  atualizarDriveStatusUI();
 }
 
-function atualizarCicloUI() {
-  const item = cicloAtual[indiceAtual];
-  document.getElementById('cicloTitulo').textContent = `${item.tipo}: ${item.materia}`;
-  document.getElementById('topicoAtual').textContent = `${item.topico} (${item.minutos} min)`;
-  document.getElementById('progressoTexto').textContent = `${Math.round((indiceAtual / cicloAtual.length) * 100)}%`;
-  document.getElementById('progressFill').style.width = `${(indiceAtual / cicloAtual.length) * 100}%`;
-}
+/* When GSI provides credential response (if using auto sign-in) */
+function handleCredentialResponse(response){ try{ tokenClient.requestAccessToken({ prompt:'' }); }catch(e){ console.warn(e); } }
 
-function atualizarTimerDisplay() {
-  const mins = String(Math.floor(tempoRestante / 60)).padStart(2, '0');
-  const secs = String(tempoRestante % 60).padStart(2, '0');
-  document.getElementById('timerCiclo').textContent = `${mins}:${secs}`;
-}
-
-function atualizarProgressoCiclo() {
-  const item = cicloAtual[indiceAtual];
-  const progTopico = ((item.minutos * 60 - tempoRestante) / (item.minutos * 60)) * 100;
-  const total = ((indiceAtual * 100 + progTopico) / cicloAtual.length);
-  document.getElementById('progressFill').style.width = `${total}%`;
-  document.getElementById('progressoTexto').textContent = `${Math.round(total)}%`;
-}
-
-// === POMODORO ===
-function iniciarPomodoro() {
-  document.getElementById('pomodoroSection').style.display = 'block';
-  pomodoroTime = 25 * 60;
-  atualizarTimerPomodoro();
-  timerInterval = setInterval(() => {
-    if (pomodoroTime > 0) {
-      pomodoroTime--;
-      atualizarTimerPomodoro();
-    } else {
-      clearInterval(timerInterval);
-      alert('Pomodoro concluído! 5 min de pausa.');
-    }
-  }, 1000);
-}
-
-function pausarPomodoro() { clearInterval(timerInterval); }
-function pararPomodoro() {
-  clearInterval(timerInterval);
-  document.getElementById('pomodoroSection').style.display = 'none';
-}
-
-function atualizarTimerPomodoro() {
-  const mins = String(Math.floor(pomodoroTime / 60)).padStart(2, '0');
-  const secs = String(pomodoroTime % 60).padStart(2, '0');
-  document.getElementById('timer').textContent = `${mins}:${secs}`;
-}
-
-// === UTILS ===
-function formatarHora(iso) {
-  return new Date(iso).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-}
-
-function exportarPDF() { window.print(); }
-
-// === INICIALIZAÇÃO ===
-gapi.load('client', initializeGapi);
-window.onload = () => {
+/* --------------------
+   initialization
+   -------------------- */
+window.addEventListener('load', async ()=>{
   initializeGis();
+  initializeGapi();
+  // restore local fallback quickly to render UI while Drive async loads
+  const local = localStorage.getItem('bb-last-local-backup');
+  if(local){
+    try{ const dados=JSON.parse(local); if(dados && dados.historico){ historico = dados.historico; lastBackupMeta = { timestamp:dados.timestamp, source:'Local'}; localStorage.setItem('bb-last-backup-meta', JSON.stringify(lastBackupMeta)); } }catch(e){console.warn(e);}
+  }
+  lastDriveFileId = localStorage.getItem('bb-drive-fileid') || lastDriveFileId;
+  atualizarBackupInfo();
   atualizarTudo();
-};
-</script>
+});
 
+/* expose for Google button callback */
+window.handleCredentialResponse = handleCredentialResponse;
+
+</script>
 </body>
 </html>
