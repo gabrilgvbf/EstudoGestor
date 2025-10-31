@@ -1,10 +1,9 @@
 // === CONFIGURAÇÃO GOOGLE DRIVE ===
-const CLIENT_ID = 'SEU_CLIENT_ID_AQUI'; // ← Crie em https://console.cloud.google.com/
-const API_KEY = 'SUA_API_KEY_AQUI';     // ← Habilite Drive API
+const CLIENT_ID = 'S374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com'; // ← Substitua
+const API_KEY = 'AIzaSyADVC6lYfqLPzFjpmMsVWFuTQ7OI_Gg0i8';     // ← Substitua
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-
-const FILE_ID = '1BNIIq5c4SiicY68_C03t-xhQu0b2lwOQ'; // ← Crie um arquivo no Drive e pegue o ID
+const FILE_ID = '1BNIIq5c4SiicY68_C03t-xhQu0b2lwOQ';      // ← ID do arquivo no Drive
 
 let tokenClient;
 let gapiInited = false, gisInited = false;
@@ -66,7 +65,7 @@ function autenticar() {
   if (gapi.client.getToken()) {
     carregarDoDrive();
   } else {
-    tokenClient.requestAccessToken({ prompt: '' });
+    tokenClient.requestAccessToken({ prompt: 'consent' });
   }
 }
 
@@ -79,7 +78,7 @@ async function carregarDoDrive() {
     });
     historico = JSON.parse(response.body) || [];
     status('Sincronizado com Google Drive');
-  } catch {
+  } catch (e) {
     historico = JSON.parse(localStorage.getItem('bb-local') || '[]');
     status('Offline (usando cache local)');
   }
@@ -105,8 +104,9 @@ async function salvarNoDrive() {
 
 // === UI ===
 function status(txt) {
-  $('syncStatus').textContent = txt;
-  $('syncStatus').style.color = txt.includes('Erro') ? 'red' : txt.includes('Offline') ? 'orange' : '#004aad';
+  const el = $('syncStatus');
+  el.textContent = txt;
+  el.style.color = txt.includes('Erro') ? 'red' : txt.includes('Offline') ? 'orange' : '#004aad';
 }
 
 function atualizar() {
@@ -128,7 +128,7 @@ function atualizarTabela() {
 }
 
 function excluir(i) {
-  if (confirm('Excluir?')) {
+  if (confirm('Excluir registro?')) {
     historico.splice(i, 1);
     salvarNoDrive();
   }
@@ -137,7 +137,10 @@ function excluir(i) {
 function atualizarEstatisticas() {
   const hoje = new Date().toISOString().slice(0,10);
   let hojeMin = 0, semanaMin = 0, concluidos = 0, pesoTotal = 0, pesoFeito = 0;
-  const inicioSemana = new Date(); inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1); inicioSemana.setHours(0,0,0,0);
+  const inicioSemana = new Date(); 
+  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay() + 1); 
+  inicioSemana.setHours(0,0,0,0);
+
   materias.forEach(m => pesoTotal += m.peso * m.topicos.length);
 
   historico.forEach(h => {
@@ -204,7 +207,7 @@ function fmt(iso) { return new Date(iso).toLocaleString('pt-BR', {hour:'2-digit'
 
 // === AÇÕES ===
 function iniciar(m, t) {
-  if (historico.some(h => h.materia === m && h.topico === t && !h.fim)) return alert('Em andamento!');
+  if (historico.some(h => h.materia === m && h.topico === t && !h.fim)) return alert('Já em andamento!');
   historico.push({materia: m, topico: t, inicio: new Date().toISOString(), status: 'Em andamento', nota: ''});
   salvarNoDrive();
 }
@@ -218,8 +221,8 @@ function finalizar(m, t) {
 }
 
 function resetarProgresso() {
-  if (confirm('Resetar tudo?')) {
-    historico = historico.map(h => ({...h, inicio:null, fim:null, status:'Pendente', nota:''}));
+  if (confirm('Resetar TODO o progresso?')) {
+    historico = historico.map(h => ({...h, inicio: null, fim: null, status: 'Pendente', nota: ''}));
     salvarNoDrive();
   }
 }
@@ -239,7 +242,9 @@ function salvarNota() {
   fecharModal();
 }
 
-function fecharModal() { $('notaModal').style.display = 'none'; }
+function fecharModal() {
+  $('notaModal').style.display = 'none';
+}
 
 // === EVENTOS ===
 document.addEventListener('DOMContentLoaded', () => {

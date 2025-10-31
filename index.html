@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BB Agente TI - Estudos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  
-  <!-- CSP seguro para Vercel + Google Drive -->
+
+  <!-- CSP LIBERADO PARA GOOGLE DRIVE + GIS + GAPI -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' https://apis.google.com https://www.gstatic.com;
-    connect-src 'self' https://www.googleapis.com https://content.googleapis.com;
+    script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://*.googleapis.com;
+    connect-src 'self' https://*.googleapis.com https://*.gstatic.com https://content.googleapis.com;
+    frame-src 'self' https://accounts.google.com https://content.googleapis.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src https://fonts.gstatic.com;
     img-src 'self' data:;
@@ -34,10 +35,7 @@
     .stat strong { display: block; font-size: 1.4rem; color: #004aad; }
 
     .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
-    button, select { padding: 10px 14px; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
-    select { background: white; border: 1px solid #ccc; }
-    .btn-azul { background: #004aad; color: white; }
-    .btn-verde { background: #28a745; color: white; }
+    button { padding: 10px 14px; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
     .btn-vermelho { background: #dc3545; color: white; }
 
     .materia { background: white; margin-bottom: 12px; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
@@ -73,14 +71,12 @@
 <body>
 
 <div class="container">
-
-  <!-- HEADER -->
   <header>
     <h1>BB Agente TI</h1>
     <p>Concurso 2025/2026</p>
   </header>
 
-  <div class="sync" id="syncStatus">Carregando do Google Drive...</div>
+  <div class="sync" id="syncStatus">Autenticando com Google Drive...</div>
 
   <div class="stats">
     <div class="stat"><span>Tempo Hoje</span><strong id="tempoHoje">0</strong> min</div>
@@ -97,9 +93,14 @@
 
   <div style="background:white;padding:15px;border-radius:10px;margin-top:20px;">
     <h3>Histórico</h3>
-    <table><thead><tr>
-      <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Min</th><th>Status</th><th></th>
-    </tr></thead><tbody id="tabelaHistorico"></tbody></table>
+    <table>
+      <thead>
+        <tr>
+          <th>Matéria</th><th>Tópico</th><th>Início</th><th>Fim</th><th>Min</th><th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="tabelaHistorico"></tbody>
+    </table>
   </div>
 
   <div class="modal" id="notaModal">
