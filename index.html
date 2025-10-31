@@ -16,7 +16,7 @@
       font-family: 'Inter', sans-serif;
       background: #f4f6f8;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       color: #333;
     }
 
@@ -24,14 +24,14 @@
       background: linear-gradient(135deg, #004aad, #00337f);
       color: white;
       text-align: center;
-      padding: 30px;
-      border-radius: 16px;
-      margin-bottom: 30px;
+      padding: 40px;
+      border-radius: 0 0 16px 16px;
+      margin-bottom: 20px;
     }
 
     header h1 {
       margin: 0;
-      font-size: 1.9rem;
+      font-size: 2rem;
     }
 
     header p {
@@ -43,6 +43,41 @@
     .container {
       max-width: 1000px;
       margin: 0 auto;
+      padding: 20px;
+      display: none; /* escondido até o login */
+    }
+
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      background: linear-gradient(135deg, #004aad, #0060d0);
+      color: white;
+    }
+
+    .login-screen h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .login-screen button {
+      background: white;
+      color: #004aad;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .login-screen button:hover {
+      background: #f1f1f1;
+      transform: translateY(-2px);
     }
 
     .btn-primary, .btn-warning, .btn-secondary {
@@ -98,10 +133,6 @@
       cursor: pointer;
     }
 
-    .topico-item button:hover {
-      opacity: 0.9;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -133,21 +164,23 @@
 </head>
 
 <body>
-  <header>
-    <h1>📘 EstudoBB - Agente de Tecnologia</h1>
-    <p>Gerencie seus estudos, progresso e backups automáticos no Google Drive</p>
-  </header>
+  <!-- TELA DE LOGIN -->
+  <div class="login-screen" id="loginScreen">
+    <h2>🎯 EstudoBB - Agente de Tecnologia</h2>
+    <p>Faça login com sua conta Google para acessar o plano de estudos</p>
+    <button onclick="handleLogin()">Entrar com Google</button>
+  </div>
 
-  <div class="container">
-    <!-- STATUS / LOGIN -->
-    <div id="driveStatus">
-      <button class="btn-primary" onclick="handleLogin()">Entrar com Google</button>
-    </div>
+  <!-- SISTEMA (só aparece após login) -->
+  <div class="container" id="mainApp">
+    <header>
+      <h1>📘 EstudoBB - Agente de Tecnologia</h1>
+      <p>Gerencie seus estudos e salve progresso no Google Drive</p>
+    </header>
 
-    <!-- MATÉRIAS E TÓPICOS -->
+    <div id="driveStatus"></div>
     <div id="materias"></div>
 
-    <!-- HISTÓRICO -->
     <h2 style="margin-top:40px;">Histórico de Estudos</h2>
     <table>
       <thead>
@@ -161,13 +194,30 @@
       </thead>
       <tbody id="tabelaHistorico"></tbody>
     </table>
-  </div>
 
-  <footer>
-    © 2025 - EstudoBB | Feito com 💛 para o concurso Banco do Brasil
-  </footer>
+    <footer>
+      © 2025 - EstudoBB | Feito com 💛 para o concurso Banco do Brasil
+    </footer>
+  </div>
 
   <!-- SCRIPT PRINCIPAL -->
   <script src="app.js"></script>
+
+  <script>
+    // Mostrar app somente após login bem-sucedido
+    function mostrarSistema() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+    }
+
+    // Sobrescreve o handleLogin para também exibir o sistema após login
+    const oldHandleLogin = window.handleLogin;
+    window.handleLogin = async function() {
+      await oldHandleLogin();
+      setTimeout(() => {
+        mostrarSistema();
+      }, 1000);
+    };
+  </script>
 </body>
 </html>
