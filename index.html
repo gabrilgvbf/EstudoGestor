@@ -1,223 +1,190 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EstudoBB - Agente de Tecnologia</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EstudoBB - Plano de Estudos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Google APIs -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://apis.google.com/js/api.js"></script>
-
-  <!-- Fonte e estilo -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --azul-bb: #004aad;
+      --verde: #28a745;
+      --amarelo: #ffc107;
+      --vermelho: #dc3545;
+      --cinza: #6c757d;
+      --fundo: #f8f9fa;
+      --card: #ffffff;
+      --borda: #dee2e6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 0;
-      color: #333;
+      background: var(--fundo);
+      color: #212529;
+      padding: 20px;
     }
 
     header {
-      background: linear-gradient(135deg, #004aad, #00337f);
-      color: white;
       text-align: center;
-      padding: 40px;
-      border-radius: 0 0 16px 16px;
-      margin-bottom: 20px;
+      padding: 30px 20px;
+      background: linear-gradient(135deg, var(--azul-bb), #003d82);
+      color: white;
+      border-radius: 16px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 20px rgba(0, 77, 173, 0.2);
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
+    header h1 { font-size: 2rem; margin-bottom: 8px; }
+    header p { opacity: 0.9; font-size: 1.1rem; }
 
-    header p {
-      margin-top: 8px;
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
+    .container { max-width: 1000px; margin: auto; }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px;
-      display: none; /* escondido até o login */
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
     }
+    button:hover { transform: translateY(-1px); opacity: 0.9; }
 
-    .login-screen {
+    .btn-primary { background: var(--azul-bb); color: white; }
+    .btn-danger { background: var(--vermelho); color: white; }
+
+    /* LOGIN */
+    #loginSection {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      height: 80vh;
       text-align: center;
-      background: linear-gradient(135deg, #004aad, #0060d0);
-      color: white;
     }
 
-    .login-screen h2 {
-      font-size: 2rem;
+    #loginSection h2 {
+      font-size: 1.8rem;
+      color: var(--azul-bb);
       margin-bottom: 20px;
     }
 
-    .login-screen button {
-      background: white;
-      color: #004aad;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .login-screen button:hover {
-      background: #f1f1f1;
-      transform: translateY(-2px);
-    }
-
-    .btn-primary, .btn-warning, .btn-secondary {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 4px;
-      font-size: 0.9rem;
-    }
-
-    .btn-primary { background: #004aad; color: white; }
-    .btn-warning { background: #ffc107; color: #333; }
-    .btn-secondary { background: #6c757d; color: white; }
-
-    #driveStatus {
-      text-align: center;
-      margin: 20px 0;
-    }
+    /* APP */
+    #appSection { display: none; }
 
     .materia {
-      background: white;
-      border-radius: 10px;
-      margin-bottom: 15px;
+      background: var(--card);
+      border-radius: 12px;
+      margin-bottom: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid var(--borda);
     }
 
     .materia-header {
-      padding: 16px 20px;
-      background: #004aad;
+      background: var(--azul-bb);
       color: white;
+      padding: 16px 20px;
+      font-weight: 600;
       cursor: pointer;
-      border-radius: 10px 10px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      user-select: none;
     }
 
     .materia-content {
       display: none;
-      padding: 10px 20px;
+      padding: 16px 20px;
     }
 
-    .topico-item button {
-      border: none;
-      background: #28a745;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      margin-left: 6px;
-      cursor: pointer;
+    .materia-content.open { display: block; }
+
+    .topico-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed #ddd;
+      padding: 10px 0;
     }
+
+    .topico-item:last-child { border-bottom: none; }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
+      margin-top: 20px;
     }
 
     th, td {
-      border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
+      border: 1px solid #ddd;
     }
 
     th {
-      background: #004aad;
+      background: var(--azul-bb);
       color: white;
     }
 
-    tr:nth-child(even) { background: #f8f9fa; }
-
     footer {
       text-align: center;
-      font-size: 0.9rem;
-      color: #777;
       margin-top: 40px;
+      font-size: 0.9rem;
+      color: var(--cinza);
     }
   </style>
 </head>
 
 <body>
-  <!-- TELA DE LOGIN -->
-  <div class="login-screen" id="loginScreen">
-    <h2>🎯 EstudoBB - Agente de Tecnologia</h2>
-    <p>Faça login com sua conta Google para acessar o plano de estudos</p>
-    <button onclick="handleLogin()">Entrar com Google</button>
+  <div class="container">
+
+    <!-- LOGIN -->
+    <section id="loginSection">
+      <h2>Bem-vindo ao EstudoBB 👋</h2>
+      <p>Faça login com sua conta Google para acessar seu plano de estudos</p>
+      <br />
+      <button id="btnLoginGoogle" class="btn-primary" onclick="handleLogin()" disabled>Entrar com Google</button>
+    </section>
+
+    <!-- SISTEMA -->
+    <section id="appSection">
+      <header>
+        <h1>EstudoBB - Plano de Estudos</h1>
+        <p>Concurso Banco do Brasil 2025/2026 | Modo Inteligente</p>
+      </header>
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <button class="btn-primary" onclick="salvarBackupNoDrive()">Backup no Drive</button>
+        <button class="btn-danger" onclick="logout()">Sair</button>
+      </div>
+
+      <div id="materias"></div>
+
+      <h2 style="margin-top:30px;">Histórico</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Matéria</th>
+            <th>Tópico</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Duração</th>
+            <th>Status</th>
+            <th>Tentativa</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaHistorico"></tbody>
+      </table>
+
+      <footer>
+        <p>EstudoBB © 2025 — Powered by Gabriel Viana</p>
+      </footer>
+    </section>
   </div>
 
-  <!-- SISTEMA (só aparece após login) -->
-  <div class="container" id="mainApp">
-    <header>
-      <h1>📘 EstudoBB - Agente de Tecnologia</h1>
-      <p>Gerencie seus estudos e salve progresso no Google Drive</p>
-    </header>
-
-    <div id="driveStatus"></div>
-    <div id="materias"></div>
-
-    <h2 style="margin-top:40px;">Histórico de Estudos</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Matéria</th>
-          <th>Tópico</th>
-          <th>Início</th>
-          <th>Fim</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaHistorico"></tbody>
-    </table>
-
-    <footer>
-      © 2025 - EstudoBB | Feito com 💛 para o concurso Banco do Brasil
-    </footer>
-  </div>
+  <!-- GOOGLE API -->
+  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 
   <!-- SCRIPT PRINCIPAL -->
   <script src="app.js"></script>
-
-  <script>
-    // Mostrar app somente após login bem-sucedido
-    function mostrarSistema() {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-    }
-
-    // Sobrescreve o handleLogin para também exibir o sistema após login
-    const oldHandleLogin = window.handleLogin;
-    window.handleLogin = async function() {
-      await oldHandleLogin();
-      setTimeout(() => {
-        mostrarSistema();
-      }, 1000);
-    };
-  </script>
 </body>
 </html>
