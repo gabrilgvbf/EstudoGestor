@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EstudoBB - Plano de Estudos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  
   <style>
     :root {
       --azul-bb: #004aad;
@@ -39,7 +40,7 @@
     header h1 { font-size: 2rem; margin-bottom: 8px; }
     header p { opacity: 0.9; font-size: 1.1rem; }
 
-    .container { max-width: 1000px; margin: auto; }
+    .container { max-width: 1200px; margin: auto; }
 
     button {
       padding: 10px 16px;
@@ -48,37 +49,137 @@
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
+      font-size: 0.9rem;
     }
     button:hover { transform: translateY(-1px); opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-primary { background: var(--azul-bb); color: white; }
+    .btn-success { background: var(--verde); color: white; }
     .btn-danger { background: var(--vermelho); color: white; }
+    .btn-warning { background: var(--amarelo); color: #333; }
+    .btn-small { padding: 6px 12px; font-size: 0.85rem; }
 
-    /* LOGIN */
-    #loginSection {
+    /* TABS */
+    .tabs {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 80vh;
-      text-align: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--borda);
     }
 
-    #loginSection h2 {
-      font-size: 1.8rem;
+    .tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--cinza);
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: var(--azul-bb); }
+    .tab.active {
       color: var(--azul-bb);
+      border-bottom-color: var(--azul-bb);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* DASHBOARD */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-left: 4px solid var(--azul-bb);
+    }
+
+    .stat-card h3 {
+      font-size: 0.9rem;
+      color: var(--cinza);
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--azul-bb);
+    }
+
+    .stat-card .subtitle {
+      font-size: 0.85rem;
+      color: var(--cinza);
+      margin-top: 5px;
+    }
+
+    /* CHARTS */
+    .chart-container {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       margin-bottom: 20px;
     }
 
-    /* APP */
-    #appSection { display: none; }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
 
+    /* POMODORO */
+    .pomodoro-container {
+      background: linear-gradient(135deg, var(--azul-bb), #003d82);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .pomodoro-timer {
+      font-size: 4rem;
+      font-weight: 700;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .pomodoro-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .pomodoro-controls button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid white;
+    }
+
+    .pomodoro-controls button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* MATERIAS */
     .materia {
       background: var(--card);
       border-radius: 12px;
       margin-bottom: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       border: 1px solid var(--borda);
+      overflow: hidden;
     }
 
     .materia-header {
@@ -88,6 +189,18 @@
       font-weight: 600;
       cursor: pointer;
       user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .materia-header:hover {
+      background: #003d82;
+    }
+
+    .materia-progress {
+      font-size: 0.85rem;
+      opacity: 0.9;
     }
 
     .materia-content {
@@ -101,27 +214,121 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px dashed #ddd;
-      padding: 10px 0;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      transition: all 0.2s;
     }
 
-    .topico-item:last-child { border-bottom: none; }
+    .topico-item:hover {
+      transform: translateX(5px);
+    }
 
+    .topico-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* CICLO */
+    .ciclo-table {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    .ciclo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .ciclo-item {
+      padding: 15px;
+      background: var(--fundo);
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--azul-bb);
+      border: 2px solid var(--borda);
+    }
+
+    /* TABLE */
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     th, td {
-      padding: 10px;
-      text-align: center;
-      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--borda);
     }
 
     th {
       background: var(--azul-bb);
       color: white;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: var(--fundo);
+    }
+
+    /* META DIARIA */
+    .meta-container {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    .meta-input {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      align-items: center;
+    }
+
+    .meta-input input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid var(--borda);
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 30px;
+      background: var(--borda);
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--verde), var(--azul-bb));
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.85rem;
     }
 
     footer {
@@ -129,67 +336,178 @@
       margin-top: 40px;
       font-size: 0.9rem;
       color: var(--cinza);
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+      .pomodoro-timer {
+        font-size: 3rem;
+      }
+      .tabs {
+        overflow-x: auto;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
+    <header>
+      <h1>EstudoBB - Plano de Estudos</h1>
+      <p>Concurso Banco do Brasil 2025/2026 | Sistema Completo de Gestão de Estudos</p>
+    </header>
 
-    <!-- LOGIN -->
-    <section id="loginSection">
-      <h2>Bem-vindo ao EstudoBB 👋</h2>
-      <p>Faça login com sua conta Google para acessar seu plano de estudos</p>
-      <br />
-      <button id="btnLoginGoogle" class="btn-primary" onclick="handleLogin()" disabled>Entrar com Google</button>
-    </section>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+      <button class="tab" onclick="switchTab('pomodoro')">Pomodoro</button>
+      <button class="tab" onclick="switchTab('materias')">Matérias</button>
+      <button class="tab" onclick="switchTab('ciclo')">Ciclo</button>
+      <button class="tab" onclick="switchTab('historico')">Histórico</button>
+    </div>
 
-    <!-- SISTEMA -->
-    <section id="appSection">
-      <header>
-        <h1>EstudoBB - Plano de Estudos</h1>
-        <p>Concurso Banco do Brasil 2025/2026 | Modo Inteligente</p>
-      </header>
-
-      <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-        <button class="btn-primary" onclick="salvarBackupNoDrive()">Backup no Drive</button>
-        <button class="btn-danger" onclick="logout()">Sair</button>
+    <!-- TAB: DASHBOARD -->
+    <div id="dashboard" class="tab-content active">
+      <div class="dashboard-grid">
+        <div class="stat-card">
+          <h3>Tempo Total Estudado</h3>
+          <div class="value" id="tempoTotal">0h</div>
+          <div class="subtitle">Últimos 7 dias</div>
+        </div>
+        <div class="stat-card">
+          <h3>Tópicos Concluídos</h3>
+          <div class="value" id="topicosConcluidos">0</div>
+          <div class="subtitle" id="subtitleTopicos">de 0 tópicos</div>
+        </div>
+        <div class="stat-card">
+          <h3>Média Diária</h3>
+          <div class="value" id="mediaDiaria">0h</div>
+          <div class="subtitle">Últimos 7 dias</div>
+        </div>
+        <div class="stat-card">
+          <h3>Sessões Hoje</h3>
+          <div class="value" id="sessoesHoje">0</div>
+          <div class="subtitle" id="subtitleSessoes">0 minutos</div>
+        </div>
       </div>
-      <h3>Meu Ciclo</h3>
-      <table style="margin: auto; padding: auto;">
-        <tr>
-          <td>PTG</td>
-          <td>MAT</td>
-        </tr>
-        <tr>
-          <td>CONHBANC</td>
-          <td>MATFINAN</td>
-        </tr>
-         <tr>
-          <td>TECNINFO</td>
-          <td>VENDNEGO</td>
-        </tr>
-       <tr>
-          <td>PTG</td>
-          <td>MAT</td>
-        </tr>
-        <tr>
-          <td>ATUALMERC</td>
-          <td>PROBESTATI</td>
-        </tr>
-        <tr>
-          <td>TECNINFO</td>
-          <td>VENDNEGO</td>
-        </tr>
-        <tr>
-           <td>INGLES</td>
-          <td>CONHINFOR</td>
-        </tr>
-      </table>
 
-      <div id="materias"></div>
+      <!-- META DIÁRIA -->
+      <div class="meta-container">
+        <h3>Meta Diária de Estudo</h3>
+        <div class="meta-input">
+          <input type="number" id="metaDiaria" placeholder="Meta em minutos (ex: 120)" min="0" />
+          <button class="btn-primary" onclick="salvarMeta()">Salvar Meta</button>
+        </div>
+        <div class="progress-bar" style="margin-top: 15px;">
+          <div class="progress-fill" id="progressMeta" style="width: 0%">0%</div>
+        </div>
+        <p id="metaTexto" style="margin-top: 10px; color: var(--cinza); font-size: 0.9rem;"></p>
+      </div>
 
-      <h2 style="margin-top:30px;">Histórico</h2>
+      <!-- GRÁFICOS -->
+      <div class="chart-grid">
+        <div class="chart-container">
+          <h3 style="margin-bottom: 15px;">Progresso por Matéria</h3>
+          <canvas id="chartMaterias"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3 style="margin-bottom: 15px;">Tempo por Matéria (últimos 7 dias)</h3>
+          <canvas id="chartTempo"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <h3 style="margin-bottom: 15px;">Evolução Semanal (minutos/dia)</h3>
+        <canvas id="chartEvolucao"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB: POMODORO -->
+    <div id="pomodoro" class="tab-content">
+      <div class="pomodoro-container">
+        <h2>Timer Pomodoro</h2>
+        <div class="pomodoro-timer" id="pomodoroTimer">25:00</div>
+        <div class="pomodoro-controls">
+          <button onclick="iniciarPomodoro()">Iniciar</button>
+          <button onclick="pausarPomodoro()">Pausar</button>
+          <button onclick="resetarPomodoro()">Resetar</button>
+          <button onclick="configurarPomodoro()">Configurar</button>
+        </div>
+        <p style="margin-top: 20px; opacity: 0.8;" id="pomodoroStatus">Clique em Iniciar para começar</p>
+      </div>
+
+      <div style="background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <h3>O que é Pomodoro?</h3>
+        <p style="margin-top: 10px; line-height: 1.6;">
+          A Técnica Pomodoro é um método de gestão de tempo que usa intervalos de 25 minutos de foco total, 
+          seguidos de pausas de 5 minutos. Após 4 pomodoros, faça uma pausa mais longa de 15-30 minutos.
+        </p>
+        <ul style="margin-top: 15px; padding-left: 25px; line-height: 2;">
+          <li>✅ Trabalho focado: 25 minutos</li>
+          <li>☕ Pausa curta: 5 minutos</li>
+          <li>🎯 Pausa longa: 15-30 minutos (após 4 pomodoros)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TAB: MATÉRIAS -->
+    <div id="materias" class="tab-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <h2>Minhas Matérias</h2>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-success" onclick="expandirTodas()">Expandir Todas</button>
+          <button class="btn-warning" onclick="recolherTodas()">Recolher Todas</button>
+        </div>
+      </div>
+      <div id="listaMaterias"></div>
+    </div>
+
+    <!-- TAB: CICLO -->
+    <div id="ciclo" class="tab-content">
+      <div class="ciclo-table">
+        <h2>Meu Ciclo de Estudos</h2>
+        <p style="margin-top: 10px; color: var(--cinza);">
+          Siga este ciclo para garantir uma revisão equilibrada de todas as matérias
+        </p>
+        <div class="ciclo-grid">
+          <div class="ciclo-item">PORTUGUÊS</div>
+          <div class="ciclo-item">MATEMÁTICA</div>
+          <div class="ciclo-item">CONH. BANCÁRIOS</div>
+          <div class="ciclo-item">MAT. FINANCEIRA</div>
+          <div class="ciclo-item">TEC. INFORMAÇÃO</div>
+          <div class="ciclo-item">VENDAS E NEGOCIAÇÃO</div>
+          <div class="ciclo-item">PORTUGUÊS</div>
+          <div class="ciclo-item">MATEMÁTICA</div>
+          <div class="ciclo-item">ATUALIDADES</div>
+          <div class="ciclo-item">PROB. E ESTATÍSTICA</div>
+          <div class="ciclo-item">TEC. INFORMAÇÃO</div>
+          <div class="ciclo-item">VENDAS E NEGOCIAÇÃO</div>
+          <div class="ciclo-item">INGLÊS</div>
+          <div class="ciclo-item">CONH. INFORMÁTICA</div>
+        </div>
+      </div>
+
+      <div style="background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <h3>Dicas para seguir o ciclo:</h3>
+        <ul style="margin-top: 15px; padding-left: 25px; line-height: 2;">
+          <li>📚 Complete um tópico de cada matéria antes de avançar no ciclo</li>
+          <li>🔄 Reinicie o ciclo ao finalizar todas as matérias</li>
+          <li>⏰ Use o Pomodoro para manter o foco em cada sessão</li>
+          <li>📊 Acompanhe seu progresso no Dashboard</li>
+          <li>🎯 Priorize matérias com maior peso na prova</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TAB: HISTÓRICO -->
+    <div id="historico" class="tab-content">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <h2>Histórico de Estudos</h2>
+        <button class="btn-danger" onclick="limparHistorico()">Limpar Histórico</button>
+      </div>
       <table>
         <thead>
           <tr>
@@ -204,18 +522,453 @@
         </thead>
         <tbody id="tabelaHistorico"></tbody>
       </table>
+    </div>
 
-      <footer>
-        <p>EstudoBB © 2025 — Powered by Gabriel Viana</p>
-      </footer>
-    </section>
+    <footer>
+      <p>EstudoBB © 2025 - Powered by Gabriel Viana</p>
+      <p style="margin-top: 5px;">Boa sorte no seu concurso! 🎯</p>
+    </footer>
   </div>
 
-  <!-- GOOGLE API -->
-  <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-  <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+  <script>
+    // === DADOS ===
+    let historico = [];
+    let metaDiaria = 120; // padrão 2 horas
+    let pomodoroTime = 25 * 60; // 25 minutos
+    let pomodoroInterval = null;
+    let pomodoroRunning = false;
+    let pomodoroOriginalTime = 25 * 60;
 
-  <!-- SCRIPT PRINCIPAL -->
-  <script src="app.js"></script>
+    const materiasData = [
+      { nome: 'LÍNGUA INGLESA', peso: 5, topicos: ['1 - Conhecimento de um vocabulário fundamental e dos aspectos gramaticais básicos para a compreensão de textos']},
+      { nome: 'LÍNGUA PORTUGUESA', peso: 15, topicos: ['1 - Compreensão de textos.', '2 - Ortografia oficial.', '3 - Classe e emprego de palavras.', '4 - Emprego do acento indicativo de crase.', '5 - Sintaxe da oração e do período.', '6 - Emprego dos sinais de pontuação.', '7 - Concordância verbal e nominal.', '8 - Regência verbal e nominal.', '9 - Colocação dos pronomes oblíquos átonos (próclise, mesóclise e ênclise).']},
+      { nome: 'MATEMÁTICA', peso: 7.5, topicos: ['1 - Números inteiros, racionais e reais; problemas de contagem.', '2 - Sistema legal de medidas.', '3 - Razões e proporções; divisão proporcional; regras de três simples e compostas; porcentagens.', '4 - Lógica proposicional.', '5 - Noções de conjuntos.', '6 - Relações e funções; funções polinomiais; funções exponenciais e logarítmicas.', '7 - Matrizes.', '8 - Determinantes.', '9 - Sistemas lineares.', '10 - Sequências.', '11 - Progressões aritméticas e progressões geométricas.']},
+      { nome: 'MATEMÁTICA FINANCEIRA', peso: 7.5, topicos: ['1 - Conceitos gerais: O conceito do valor do dinheiro no tempo; Capital, juros, taxas de juros; Capitalização, regimes de capitalização; Fluxos de caixa e diagramas de fluxo de caixa; Equivalência financeira.', '2 - Juros simples: Cálculo do montante, dos juros, da taxa de juros, do principal e do prazo da operação financeira.', '3 - Juros compostos: Cálculo do montante, dos juros, da taxa de juros, do principal e do prazo da operação financeira.', '4 - Sistemas de amortização: Sistema Price; Sistema SAC.']},
+      { nome: 'ATUALIDADES DO MERCADO FINANCEIRO', peso: 5, topicos: ['1 - Os bancos na Era Digital: Atualidade, tendências e desafios.', '2 - Internet banking.', '3 - Mobile banking.', '4 - Open banking.', '5 - Novos modelos de negócios.', '6 - Fintechs, startups e big techs.', '7 - Sistema de bancos sombra (Shadow banking).', '8 - Funções da moeda.', '9 - O dinheiro na era digital: blockchain, bitcoin e demais criptomoedas.', '10 - Marketplace.', '11 - Correspondentes bancários.', '12 - Arranjos de pagamentos.', '13 - Sistema de pagamentos instantâneos (PIX).', '14 - Segmentação e interações digitais.', '15 - Transformação digital no Sistema Financeiro.']},
+      { nome: 'PROBABILIDADE E ESTATÍSTICA', peso: 7.5, topicos: ['1 - Representação tabular e gráfica.', '2 - Medidas de tendência central: média, mediana, moda, medidas de posição, mínimo e máximo; e medidas de dispersão: amplitude, amplitude interquartil, variância, desvio padrão e coeficiente de variação.', '3 - Variáveis aleatórias e distribuição de probabilidade.', '4 - Teorema de Bayes.', '5 - Probabilidade condicional.', '6 - População e amostra.', '7 - Variância e covariância.', '8 - Correlação linear simples.', '9 - Distribuição binomial e distribuição normal.', '10 - Noções de amostragem e inferência estatística.']},
+      { nome: 'CONHECIMENTOS BANCÁRIOS', peso: 7.5, topicos: ['1 - Sistema Financeiro Nacional: Estrutura do Sistema Financeiro Nacional; Órgãos normativos e instituições supervisoras, executoras e operadoras.', '2 - Mercado financeiro e seus desdobramentos (mercados monetário, de crédito, de capitais e cambial).', '3 - Moeda e política monetária: Políticas monetárias convencionais e não-convencionais (Quantitative Easing); Taxa SELIC e operações compromissadas; O debate sobre os depósitos remunerados dos bancos comerciais no Banco Central do Brasil.', '4 - Orçamento público, títulos do Tesouro Nacional e dívida pública.', '5 - Produtos Bancários: Noções de cartões de crédito e débito, crédito direto ao consumidor, crédito rural, poupança, capitalização, previdência, consórcio, investimentos e seguros.', '6 - Noções de Mercado de capitais.', '7 - Noções de Mercado de Câmbio: Instituições autorizadas a operar e operações básicas.', '8 - Regimes de taxas de câmbio fixas, flutuantes e regimes intermediários.', '9 - Taxas de câmbio nominais e reais.', '10 - Impactos das taxas de câmbio sobre as exportações e importações.', '11 - Diferencial de juros interno e externo, prêmios de risco, fluxo de capitais e seus impactos sobre as taxas de câmbio.', '12 - Dinâmica do Mercado: Operações no mercado interbancário.', '13 - Mercado bancário: Operações de tesouraria, varejo bancário e recuperação de crédito.', '14 - Taxas de juros de curto prazo e a curva de juros; taxas de juros nominais e reais.', '15 - Garantias do Sistema Financeiro Nacional: aval; fiança; penhor mercantil; alienação fiduciária; hipoteca; fianças bancárias.', '16 - Crime de lavagem de dinheiro: conceito e etapas; Prevenção e combate ao crime de lavagem de dinheiro: Lei nº 9.613/98 e suas alterações; Circular nº 3.978, de 23 de janeiro de 2020 e Carta Circular nº 4.001, de 29 de janeiro de 2020 e suas alterações.', '17 - Autorregulação bancária e Normativos SARB.', '18 - Sigilo Bancário: Lei Complementar nº 105/2001 e suas alterações.', '19 - Lei Geral de Proteção de Dados (LGPD): Lei nº 13.709, de 14 de agosto de 2018 e suas alterações.', '20 - Legislação anticorrupção: Lei nº 12.846/2013 e Decreto nº 11.129 de 11/07/2022.', '21 - Segurança cibernética: Resolução CMN nº 4.893, de 26/02/2021.', '22 - Ética aplicada: ética, moral, valores e virtudes; noções de ética empresarial e profissional; gestão da ética nas empresas públicas e privadas; Código de Ética do Banco do Brasil (disponível no sítio do BB na internet).', '23 - Política de Responsabilidade Socioambiental do Banco do Brasil (disponível no sítio do BB na internet).', '24 - ASG (Ambiental, Social e Governança): Economia Sustentável; Financiamentos; Mercado PJ.']},
+      { nome: 'TECNOLOGIA DA INFORMAÇÃO', peso: 52.5, topicos: ['1 - Aprendizagem de máquina: Fundamentos básicos; Noções de algoritmos de aprendizado supervisionados e não supervisionados; Noções de processamento de linguagem natural.', '2 - Banco de Dados: Banco de dados NoSQL (conceitos básicos, bancos orientados a grafos, colunas, chave/valor e documentos); MongoDB; linguagem SQL2008; Conceitos de banco de dados e sistemas gerenciadores de bancos de dados (SGBD); Data Warehouse (modelagem conceitual para data warehouses, dados multidimensionais); Modelagem conceitual de dados (a abordagem entidade-relacionamento); Modelo relacional de dados (conceitos básicos, normalização); PostgreSQL.', '3 - Big Data: Fundamentos; Técnicas de preparação e apresentação de dados.', '4 - Desenvolvimento Mobile: linguagens/frameworks: Java/Kotlin e Swift; React Native 0.59; Sistemas Android API 30 e iOS Xcode 10.', '5 - Estrutura de dados e algoritmos: busca sequencial e busca binária sobre arrays; ordenação (métodos da bolha, por seleção, por inserção); lista encadeada, pilha, fila e noções sobre árvore binária.', '6 - Ferramentas e linguagens de programação para manipulação de dados: Ansible; Java (SE 11 e EE 8); TypeScript 4.0; Python 3.9.X aplicada para IA/ML e Analytics (bibliotecas Pandas, NumPy, SciPy, Matplotlib e Scikit-learn).']},
+      { nome: 'CONHECIMENTO DE INFORMÁTICA', peso: 7.5, topicos: ['1 - Noções de sistemas operacionais: Windows 10 (32-64 bits) e ambiente Linux (SUSE SLES 15 SP2).', '2 - Edição de textos, planilhas e apresentações: ambientes Microsoft Office (Word, Excel e PowerPoint - versão O365).', '3 - Segurança da informação: fundamentos, conceitos e mecanismos de segurança.', '4 - Proteção de estações de trabalho: controle de dispositivos USB, hardening, antimalware e firewall pessoal.', '5 - Conceitos de organização e de gerenciamento de informações, arquivos, pastas e programas.', '6 - Redes de computadores: conceitos básicos, ferramentas, aplicativos e procedimentos de Internet e intranet.', '7 - Navegador Web: Microsoft Edge (versão 91) e Mozilla Firefox (versão 78 ESR); busca e pesquisa na Web.', '8 - Correio eletrônico, grupos de discussão, fóruns e wikis.', '9 - Redes sociais: Twitter, Facebook, LinkedIn, WhatsApp, YouTube, Instagram e Telegram.', '10 - Visão geral sobre sistemas de suporte à decisão e inteligência de negócio.', '11 - Fundamentos sobre análise de dados.', '12 - Conceitos de educação a distância.', '13 - Conceitos de tecnologias e ferramentas multimídia, de reprodução de áudio e vídeo.', '14 - Ferramentas de produtividade e trabalho a distância: Microsoft Teams, Cisco Webex, Google Hangout, Google Drive e Skype.']},
+      { nome: 'VENDAS E NEGOCIAÇÃO', peso: 22.5, topicos: ['1 - Noções de estratégia empresarial: análise de mercado, forças competitivas, imagem institucional, identidade e posicionamento.', '2 - Segmentação de mercado.', '3 - Ações para aumentar o valor percebido pelo cliente.', '4 - Gestão da experiência do cliente.', '5 - Aprendizagem e sustentabilidade organizacional.', '6 - Características dos serviços: intangibilidade, inseparabilidade, variabilidade e perecibilidade.', '7 - Gestão da qualidade em serviços.', '8 - Técnicas de vendas: da pré-abordagem ao pós-vendas.', '9 - Noções de marketing digital: geração de leads; técnica de copywriting; gatilhos mentais; Inbound marketing.', '10 - Ética e conduta profissional em vendas.', '11 - Padrões de qualidade no atendimento aos clientes.', '12 - Utilização de canais remotos para vendas.', '13 - Comportamento do consumidor e sua relação com vendas e negociação.', '14 - Política de Relacionamento com o Cliente: Resolução nº 4.949, de 30 de setembro de 2021.', '15 - Resolução CMN nº 4.860, de 23 de outubro de 2020 que dispõe sobre a constituição e o funcionamento de componente organizacional de ouvidoria pelas instituições financeiras e demais instituições autorizadas a funcionar pelo Banco Central do Brasil.', '16 - Lei Brasileira de Inclusão da Pessoa com Deficiência (Estatuto da Pessoa com Deficiência): Lei nº 13.146, de 06 de julho de 2015.', '17 - Código de Proteção e Defesa do Consumidor: Lei nº 8.078/1990 (versão atualizada).']}
+    ];
+
+    // === INICIALIZAÇÃO ===
+    window.onload = function() {
+      carregarDados();
+      renderizarMaterias();
+      atualizarDashboard();
+      atualizarHistorico();
+      carregarMeta();
+    };
+
+    // === LOCAL STORAGE ===
+    function salvarDados() {
+      localStorage.setItem('historico', JSON.stringify(historico));
+      localStorage.setItem('metaDiaria', metaDiaria.toString());
+    }
+
+    function carregarDados() {
+      const hist = localStorage.getItem('historico');
+      if (hist) {
+        historico = JSON.parse(hist);
+        corrigirBackupsAntigos();
+      }
+      const meta = localStorage.getItem('metaDiaria');
+      if (meta) metaDiaria = parseInt(meta);
+    }
+
+    function corrigirBackupsAntigos() {
+      historico.forEach(h => {
+        if (!h.tentativa) h.tentativa = 1;
+      });
+    }
+
+    // === TABS ===
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+    }
+
+    // === MATÉRIAS ===
+    function renderizarMaterias() {
+      const container = document.getElementById('listaMaterias');
+      container.innerHTML = '';
+      
+      materiasData.forEach(m => {
+        const concluidos = historico.filter(h => h.materia === m.nome && h.status === 'Concluído').length;
+        const progresso = Math.round((concluidos / m.topicos.length) * 100);
+        
+        const div = document.createElement('div');
+        div.className = 'materia';
+        div.innerHTML = `
+          <div class="materia-header" onclick="toggleMateria(this)">
+            <div>
+              <strong>${m.nome}</strong> 
+              <span class="peso" style="opacity: 0.8; font-size: 0.9rem;">(Peso ${m.peso})</span>
+            </div>
+            <div class="materia-progress">
+              ${concluidos}/${m.topicos.length} (${progresso}%)
+            </div>
+          </div>
+          <div class="materia-content">
+            ${m.topicos.map(t => {
+              const regAtivo = historico.find(h => h.materia === m.nome && h.topico === t && !h.fim);
+              const status = regAtivo ? regAtivo.status : 'Pendente';
+              const cor = status === 'Concluído' ? '#d4edda' : 
+                          status === 'Em andamento' ? '#fff3cd' : '#f8d7da';
+              
+              return `
+                <div class="topico-item" style="background: ${cor};">
+                  <div style="flex: 1;">${t}</div>
+                  <div class="topico-buttons">
+                    <button class="btn-primary btn-small" onclick='iniciarTopico("${m.nome}", \`${t}\`)'>
+                      ${regAtivo ? 'Continuar' : 'Iniciar'}
+                    </button>
+                    ${regAtivo ? `
+                      <button class="btn-success btn-small" onclick='finalizarTopico("${m.nome}", \`${t}\`)'>
+                        Finalizar
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleMateria(el) {
+      el.nextElementSibling.classList.toggle('open');
+    }
+
+    function expandirTodas() {
+      document.querySelectorAll('.materia-content').forEach(c => c.classList.add('open'));
+    }
+
+    function recolherTodas() {
+      document.querySelectorAll('.materia-content').forEach(c => c.classList.remove('open'));
+    }
+
+    function iniciarTopico(materia, topico) {
+      const tentativas = historico.filter(h => h.materia === materia && h.topico === topico).length;
+      historico.push({
+        materia,
+        topico,
+        inicio: new Date().toISOString(),
+        fim: null,
+        status: 'Em andamento',
+        tentativa: tentativas + 1
+      });
+      salvarDados();
+      renderizarMaterias();
+      atualizarDashboard();
+    }
+
+    function finalizarTopico(materia, topico) {
+      const reg = historico.find(h => h.materia === materia && h.topico === topico && !h.fim);
+      if (!reg) return alert('Tópico não iniciado!');
+      
+      reg.fim = new Date().toISOString();
+      reg.status = 'Concluído';
+      salvarDados();
+      renderizarMaterias();
+      atualizarDashboard();
+      atualizarHistorico();
+      
+      const duracao = Math.round((new Date(reg.fim) - new Date(reg.inicio)) / 60000);
+      alert(`✅ Tópico concluído em ${duracao} minutos! Continue assim!`);
+    }
+
+    // === HISTÓRICO ===
+    function atualizarHistorico() {
+      const tbody = document.getElementById('tabelaHistorico');
+      tbody.innerHTML = '';
+      
+      historico.slice().reverse().forEach(h => {
+        const tr = document.createElement('tr');
+        const inicio = new Date(h.inicio).toLocaleString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+        const fim = h.fim ? new Date(h.fim).toLocaleString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        }) : '-';
+        const duracao = h.fim ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 60000) + ' min' : '-';
+        
+        tr.innerHTML = `
+          <td>${h.materia}</td>
+          <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${h.topico}">
+            ${h.topico}
+          </td>
+          <td>${inicio}</td>
+          <td>${fim}</td>
+          <td>${duracao}</td>
+          <td><span style="padding: 4px 8px; background: ${h.status === 'Concluído' ? '#d4edda' : '#fff3cd'}; border-radius: 4px; font-size: 0.85rem;">${h.status}</span></td>
+          <td>${h.tentativa}ª vez</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function limparHistorico() {
+      if (!confirm('⚠️ Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita!')) return;
+      historico = [];
+      salvarDados();
+      renderizarMaterias();
+      atualizarDashboard();
+      atualizarHistorico();
+      alert('✅ Histórico limpo com sucesso!');
+    }
+
+    // === DASHBOARD ===
+    function atualizarDashboard() {
+      const agora = new Date();
+      const seteDiasAtras = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const hojeMidnight = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+      
+      // Tempo total (últimos 7 dias)
+      const historicoSemana = historico.filter(h => h.fim && new Date(h.fim) >= seteDiasAtras);
+      const minutosTotal = historicoSemana.reduce((acc, h) => {
+        return acc + (new Date(h.fim) - new Date(h.inicio)) / 60000;
+      }, 0);
+      const horasTotal = (minutosTotal / 60).toFixed(1);
+      document.getElementById('tempoTotal').textContent = horasTotal + 'h';
+      
+      // Tópicos concluídos
+      const totalTopicos = materiasData.reduce((acc, m) => acc + m.topicos.length, 0);
+      const concluidos = historico.filter(h => h.status === 'Concluído').length;
+      document.getElementById('topicosConcluidos').textContent = concluidos;
+      document.getElementById('subtitleTopicos').textContent = `de ${totalTopicos} tópicos (${Math.round(concluidos/totalTopicos*100)}%)`;
+      
+      // Média diária
+      const mediaDiaria = (minutosTotal / 7 / 60).toFixed(1);
+      document.getElementById('mediaDiaria').textContent = mediaDiaria + 'h';
+      
+      // Sessões hoje
+      const sessoesHoje = historico.filter(h => new Date(h.inicio) >= hojeMidnight);
+      const minutosHoje = sessoesHoje.reduce((acc, h) => {
+        const fim = h.fim ? new Date(h.fim) : new Date();
+        return acc + (fim - new Date(h.inicio)) / 60000;
+      }, 0);
+      document.getElementById('sessoesHoje').textContent = sessoesHoje.length;
+      document.getElementById('subtitleSessoes').textContent = `${Math.round(minutosHoje)} minutos`;
+      
+      // Atualizar meta
+      atualizarProgressoMeta();
+      
+      // Atualizar gráficos
+      atualizarGraficos();
+    }
+
+    function atualizarGraficos() {
+      // Gráfico de progresso por matéria
+      const ctxMaterias = document.getElementById('chartMaterias').getContext('2d');
+      const progressoData = materiasData.map(m => {
+        const concluidos = historico.filter(h => h.materia === m.nome && h.status === 'Concluído').length;
+        return Math.round((concluidos / m.topicos.length) * 100);
+      });
+      
+      if (window.chartMaterias) window.chartMaterias.destroy();
+      window.chartMaterias = new Chart(ctxMaterias, {
+        type: 'bar',
+        data: {
+          labels: materiasData.map(m => m.nome.substring(0, 15)),
+          datasets: [{
+            label: 'Progresso (%)',
+            data: progressoData,
+            backgroundColor: '#004aad',
+            borderRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+      
+      // Gráfico de tempo por matéria
+      const ctxTempo = document.getElementById('chartTempo').getContext('2d');
+      const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const tempoData = materiasData.map(m => {
+        const minutosMateria = historico
+          .filter(h => h.materia === m.nome && h.fim && new Date(h.fim) >= seteDiasAtras)
+          .reduce((acc, h) => acc + (new Date(h.fim) - new Date(h.inicio)) / 60000, 0);
+        return Math.round(minutosMateria);
+      });
+      
+      if (window.chartTempo) window.chartTempo.destroy();
+      window.chartTempo = new Chart(ctxTempo, {
+        type: 'doughnut',
+        data: {
+          labels: materiasData.map(m => m.nome.substring(0, 15)),
+          datasets: [{
+            data: tempoData,
+            backgroundColor: [
+              '#004aad', '#0066cc', '#3399ff', '#66b3ff',
+              '#28a745', '#5cb85c', '#8fce8f',
+              '#ffc107', '#ffca2c', '#ffd451'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+      
+      // Gráfico de evolução semanal
+      const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+      const ultimosSete = [];
+      for (let i = 6; i >= 0; i--) {
+        const dia = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+        ultimosSete.push(dia);
+      }
+      
+      const evolucaoData = ultimosSete.map(dia => {
+        const inicioDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate());
+        const fimDia = new Date(inicioDia.getTime() + 24 * 60 * 60 * 1000);
+        const minutosDia = historico
+          .filter(h => h.fim && new Date(h.fim) >= inicioDia && new Date(h.fim) < fimDia)
+          .reduce((acc, h) => acc + (new Date(h.fim) - new Date(h.inicio)) / 60000, 0);
+        return Math.round(minutosDia);
+      });
+      
+      if (window.chartEvolucao) window.chartEvolucao.destroy();
+      window.chartEvolucao = new Chart(ctxEvolucao, {
+        type: 'line',
+        data: {
+          labels: ultimosSete.map(d => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })),
+          datasets: [{
+            label: 'Minutos estudados',
+            data: evolucaoData,
+            borderColor: '#004aad',
+            backgroundColor: 'rgba(0, 74, 173, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // === META DIÁRIA ===
+    function salvarMeta() {
+      const input = document.getElementById('metaDiaria');
+      const valor = parseInt(input.value);
+      if (!valor || valor <= 0) return alert('⚠️ Digite uma meta válida!');
+      
+      metaDiaria = valor;
+      salvarDados();
+      atualizarProgressoMeta();
+      alert('✅ Meta salva com sucesso!');
+    }
+
+    function carregarMeta() {
+      document.getElementById('metaDiaria').value = metaDiaria;
+      atualizarProgressoMeta();
+    }
+
+    function atualizarProgressoMeta() {
+      const hojeMidnight = new Date();
+      hojeMidnight.setHours(0, 0, 0, 0);
+      
+      const minutosHoje = historico
+        .filter(h => new Date(h.inicio) >= hojeMidnight)
+        .reduce((acc, h) => {
+          const fim = h.fim ? new Date(h.fim) : new Date();
+          return acc + (fim - new Date(h.inicio)) / 60000;
+        }, 0);
+      
+      const progresso = Math.min(Math.round((minutosHoje / metaDiaria) * 100), 100);
+      const progressBar = document.getElementById('progressMeta');
+      progressBar.style.width = progresso + '%';
+      progressBar.textContent = progresso + '%';
+      
+      const metaTexto = document.getElementById('metaTexto');
+      const faltam = Math.max(0, metaDiaria - Math.round(minutosHoje));
+      if (progresso >= 100) {
+        metaTexto.innerHTML = '🎉 <strong>Parabéns!</strong> Você atingiu sua meta de hoje!';
+        metaTexto.style.color = '#28a745';
+      } else {
+        metaTexto.innerHTML = `Você estudou <strong>${Math.round(minutosHoje)} minutos</strong> hoje. Faltam <strong>${faltam} minutos</strong> para atingir sua meta.`;
+        metaTexto.style.color = '#6c757d';
+      }
+    }
+
+    // === POMODORO ===
+    function iniciarPomodoro() {
+      if (pomodoroRunning) return;
+      pomodoroRunning = true;
+      document.getElementById('pomodoroStatus').textContent = '🍅 Sessão em andamento - Foco total!';
+      
+      pomodoroInterval = setInterval(() => {
+        pomodoroTime--;
+        atualizarDisplayPomodoro();
+        
+        if (pomodoroTime <= 0) {
+          pausarPomodoro();
+          alert('🎉 Pomodoro concluído! Hora de fazer uma pausa!');
+          document.getElementById('pomodoroStatus').textContent = '✅ Sessão concluída! Faça uma pausa de 5 minutos.';
+        }
+      }, 1000);
+    }
+
+    function pausarPomodoro() {
+      pomodoroRunning = false;
+      clearInterval(pomodoroInterval);
+      document.getElementById('pomodoroStatus').textContent = '⏸️ Pausado - Clique em Iniciar para continuar';
+    }
+
+    function resetarPomodoro() {
+      pausarPomodoro();
+      pomodoroTime = pomodoroOriginalTime;
+      atualizarDisplayPomodoro();
+      document.getElementById('pomodoroStatus').textContent = 'Clique em Iniciar para começar';
+    }
+
+    function configurarPomodoro() {
+      const minutos = prompt('⏱️ Digite a duração do Pomodoro em minutos:', '25');
+      if (minutos && !isNaN(minutos) && minutos > 0) {
+        pomodoroOriginalTime = parseInt(minutos) * 60;
+        resetarPomodoro();
+        alert('✅ Pomodoro configurado para ' + minutos + ' minutos!');
+      }
+    }
+
+    function atualizarDisplayPomodoro() {
+      const minutos = Math.floor(pomodoroTime / 60);
+      const segundos = pomodoroTime % 60;
+      document.getElementById('pomodoroTimer').textContent = 
+        `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+    }
+
+    // Atualizar dashboard a cada minuto
+    setInterval(() => {
+      if (historico.some(h => !h.fim)) {
+        atualizarDashboard();
+      }
+    }, 60000);
+  </script>
 </body>
 </html>
