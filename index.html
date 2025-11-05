@@ -970,5 +970,137 @@
       }
     }, 60000);
   </script>
+<!-- === GOOGLE DRIVE BACKUP === -->
+<script>
+  const CLIENT_ID = "374929675068-4datkhc3lt6jseb4tuqs8t9hliig2qdl.apps.googleusercontent.com";
+  const API_KEY = "AIzaSyADVC6lYfqLPzFjpmMsVWFuTQ7OI_Gg0i8";
+  const FOLDER_ID = "1BNIIq5c4SiicY68_C03t-xhQu0b2lwOQ";
+  const SCOPES = "https://www.googleapis.com/auth/drive.file";
+
+  let tokenClient;
+  let gapiInited = false;
+  let gisInited = false;
+
+  function gapiLoaded() {
+    gapi.load("client", initializeGapiClient);
+  }
+
+  async function initializeGapiClient() {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
+    });
+    gapiInited = true;
+    maybeEnableButtons();
+  }
+
+  function gisLoaded() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: "",
+    });
+    gisInited = true;
+    maybeEnableButtons();
+  }
+
+  function maybeEnableButtons() {
+    if (gapiInited && gisInited) {
+      console.log("✅ Google Drive pronto para backup");
+    }
+  }
+
+  async function salvarBackupNoDrive() {
+    try {
+      if (!gapi.client.getToken()) {
+        tokenClient.callback = async (resp) => {
+          if (resp.error) throw resp;
+          await salvarBackupNoDrive();
+        };
+        tokenClient.requestAccessToken({ prompt: "consent" });
+        return;
+      }
+
+      const historicoData = localStorage.getItem("historico");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileContent = historicoData || "[]";
+      const blob = new Blob([fileContent], { type: "application/json" });
+
+      const metadata = {
+        name: `EstudoBB_Backup_${timestamp}.json`,
+        mimeType: "application/json",
+        parents: [FOLDER_ID],
+      };
+
+      const form = new FormData();
+      form.append(
+        "metadata",
+        new Blob([JSON.stringify(metadata)], { type: "application/json" })
+      );
+      form.append("file", blob);
+
+      const res = await fetch(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+        {
+          method: "POST",
+          headers: new Headers({
+            Authorization: "Bearer " + gapi.client.getToken().access_token,
+          }),
+          body: form,
+        }
+      );
+
+      if (res.ok) {
+        alert("✅ Backup salvo com sucesso no Google Drive!");
+      } else {
+        alert("⚠️ Erro ao salvar no Drive!");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar backup:", error);
+      alert("❌ Falha no backup. Veja o console para mais detalhes.");
+    }
+  }
+
+  async function carregarBackupDoDrive() {
+    try {
+      if (!gapi.client.getToken()) {
+        tokenClient.callback = async (resp) => {
+          if (resp.error) throw resp;
+          await carregarBackupDoDrive();
+        };
+        tokenClient.requestAccessToken({ prompt: "consent" });
+        return;
+      }
+
+      const res = await gapi.client.drive.files.list({
+        q: `'${FOLDER_ID}' in parents and name contains 'EstudoBB_Backup'`,
+        fields: "files(id, name, createdTime)",
+        orderBy: "createdTime desc",
+        pageSize: 1,
+      });
+
+      if (res.result.files && res.result.files.length > 0) {
+        const file = res.result.files[0];
+        const download = await gapi.client.drive.files.get({
+          fileId: file.id,
+          alt: "media",
+        });
+        localStorage.setItem("historico", JSON.stringify(download.result));
+        alert("✅ Backup restaurado do Drive!");
+        location.reload();
+      } else {
+        alert("ℹ️ Nenhum backup encontrado no Drive.");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar backup:", error);
+      alert("❌ Falha ao restaurar backup do Drive.");
+    }
+  }
+</script>
+
+<!-- GOOGLE API -->
+<script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+<script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
 </body>
 </html>
