@@ -1056,7 +1056,10 @@
     }
 
     function atualizarGraficos() {
-      const ctxMaterias = document.getElementById('chartMaterias').getContext('2d');
+      const ctxMaterias = document.getElementById('chartMaterias');
+      if (!ctxMaterias) return;
+      
+      const ctx = ctxMaterias.getContext('2d');
       const progressoData = materiasData.map(m => {
         const topicosConcluidos = new Set(
           historico.filter(h => h.materia === m.nome && h.concluido).map(h => h.topico)
@@ -1064,8 +1067,10 @@
         return Math.round((topicosConcluidos / m.topicos.length) * 100);
       });
       
-      if (window.chartMaterias) window.chartMaterias.destroy();
-      window.chartMaterias = new Chart(ctxMaterias, {
+      if (window.chartMaterias && typeof window.chartMaterias.destroy === 'function') {
+        window.chartMaterias.destroy();
+      }
+      window.chartMaterias = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: materiasData.map(m => m.nome.substring(0, 15)),
@@ -1088,7 +1093,10 @@
         }
       });
       
-      const ctxTempo = document.getElementById('chartTempo').getContext('2d');
+      const ctxTempo = document.getElementById('chartTempo');
+      if (!ctxTempo) return;
+      
+      const ctx2 = ctxTempo.getContext('2d');
       const seteDiasAtras = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const tempoData = materiasData.map(m => {
         const minutosMateria = historico
@@ -1097,8 +1105,10 @@
         return Math.round(minutosMateria);
       });
       
-      if (window.chartTempo) window.chartTempo.destroy();
-      window.chartTempo = new Chart(ctxTempo, {
+      if (window.chartTempo && typeof window.chartTempo.destroy === 'function') {
+        window.chartTempo.destroy();
+      }
+      window.chartTempo = new Chart(ctx2, {
         type: 'doughnut',
         data: {
           labels: materiasData.map(m => m.nome.substring(0, 15)),
@@ -1120,7 +1130,10 @@
         }
       });
       
-      const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+      const ctxEvolucao = document.getElementById('chartEvolucao');
+      if (!ctxEvolucao) return;
+      
+      const ctx3 = ctxEvolucao.getContext('2d');
       const ultimosSete = [];
       for (let i = 6; i >= 0; i--) {
         const dia = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
@@ -1136,8 +1149,10 @@
         return Math.round(minutosDia);
       });
       
-      if (window.chartEvolucao) window.chartEvolucao.destroy();
-      window.chartEvolucao = new Chart(ctxEvolucao, {
+      if (window.chartEvolucao && typeof window.chartEvolucao.destroy === 'function') {
+        window.chartEvolucao.destroy();
+      }
+      window.chartEvolucao = new Chart(ctx3, {
         type: 'line',
         data: {
           labels: ultimosSete.map(d => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })),
